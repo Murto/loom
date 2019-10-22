@@ -16,6 +16,9 @@ def parse_arguments():
 
 def main():
     arguments = parse_arguments()
+    with open(arguments['source_file']) as source:
+        for line in source:
+            print(line.strip())
 
 if __name__ == '__main__':
     main()
