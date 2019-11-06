@@ -7,17 +7,17 @@ import sys
 
 
 class TokenType(enum.Enum):
-    LET = 0
-    ASSIGN = 1
-    NEWLINE = 2
-    LEFT_BRACE = 3
-    RIGHT_BRACE = 4
-    ASTERISK = 5
-    IN = 6
-    COMMA = 7
-    SYMBOL = 8
-    CHARACTER = 9
-    STRING = 10
+    LET         = enum.auto()
+    ASSIGN      = enum.auto()
+    NEWLINE     = enum.auto() 
+    LEFT_BRACE  = enum.auto() 
+    RIGHT_BRACE = enum.auto() 
+    ASTERISK    = enum.auto() 
+    IN          = enum.auto() 
+    COMMA       = enum.auto() 
+    SYMBOL      = enum.auto() 
+    CHARACTER   = enum.auto() 
+    STRING      = enum.auto() 
 
 class Token:
 
@@ -40,13 +40,25 @@ def tokenize(source):
         re.compile('\'\\S\'') : TokenType.CHARACTER,
         re.compile('"\\S*"') : TokenType.STRING
     }
+    line = 1;
+    column = 1;
     while len(source) > 0:
+        token = None
         for pattern, type in token_map.items():
             result = pattern.match(source)
             if result:
                 value = result.group()
-                source = source[result.end:]
-                yield Token(type, value)
+                column += len(value)
+                source = source[len(value):]
+                token = Token(type, value)
+                break
+        if token is not None:
+            if token.type == TokenType.NEWLINE:
+                line += 1
+                column = 1;
+            yield Token(type, value)
+        else:
+            raise RuntimeError(f'Unknown token at line {line} column {column}')
 
 def parse_arguments():
     description = 'Loom is a toy programming language by Murray Steele'
@@ -61,8 +73,8 @@ def parse_arguments():
 def main():
     arguments = parse_arguments()
     with open(arguments['source_file']) as source:
-        for line in source:
-            print(line.strip())
+        for token in tokenize(source.read()):
+            print(token.type)
 
 if __name__ == '__main__':
     main()
