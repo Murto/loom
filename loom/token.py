@@ -24,7 +24,7 @@ class Token:
 
 
 def tokenize(source):
-    token_map = {
+    type_map = {
         re.compile('let') : TokenType.LET,
         re.compile('=') : TokenType.ASSIGN,
         re.compile('\n') : TokenType.NEWLINE,
@@ -39,22 +39,24 @@ def tokenize(source):
     }
     line = 1;
     column = 1;
+    tokens = list()
     while len(source) > 0:
-        token = None
-        for pattern, type in token_map.items():
-            result = pattern.match(source)
-            if result:
-                value = result.group()
-                column += len(value)
-                source = source[len(value):]
-                token = Token(type, value)
-                break
-        if token is not None:
-            if token.type == TokenType.NEWLINE:
-                line += 1
-                column = 1;
-            yield Token(type, value)
+        if source[0] in " \t":
+            source = source[1:]
         else:
-            raise RuntimeError(f'Unknown token at line {line} column {column}')
-
-
+            found = False
+            for pattern, type in type_map.items():
+                result = pattern.match(source)
+                if result:
+                    value = result.group()
+                    column += len(value)
+                    source = source[len(value):]
+                    tokens.append(Token(type, value))
+                    if type == TokenType.NEWLINE:
+                        line += 1
+                        column = 1;
+                    found = True
+                    break
+            if not found:
+                raise RuntimeError(f'Unknown token at line {line} column {column}')
+    return tokens
