@@ -4,6 +4,7 @@ import argparse
 import sys
 
 from token import tokenize
+from parse import parse
 
 def parse_arguments():
     description = 'Loom is a toy programming language by Murray Steele'
@@ -18,8 +19,7 @@ def parse_arguments():
 def main():
     arguments = parse_arguments()
     with open(arguments['source_file']) as source:
-        for token in tokenize(source.read()):
-            print(token.type)
+        print(parse(tokenize(source.read())))
 
 if __name__ == '__main__':
     main()
