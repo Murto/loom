@@ -1,3 +1,4 @@
-# pyramid
+# Loom
 
-pryamid is a toy language for playing around with data granularity and type systems.
+Loom is a toy language for playing around with data represention and type
+systems
