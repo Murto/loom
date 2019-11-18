@@ -31,7 +31,7 @@ def parse_alphabet_definitions(tokens):
 def parse_alphabet_definition(tokens):
     seen, tokens = lookahead(tokens, TokenType.LET, TokenType.SYMBOL, TokenType.ASSIGN, TokenType.LEFT_BRACE)
     if seen:
-        symbol = seen[1]
+        symbol = seen[1].value
         character_list, tokens = parse_character_list(tokens)
         seen, tokens = lookahead(tokens, TokenType.RIGHT_BRACE, TokenType.NEWLINE)
         if seen:
@@ -44,10 +44,10 @@ def parse_alphabet_definition(tokens):
 def parse_character_list(tokens):
     seen, tokens = lookahead(tokens, TokenType.CHARACTER)
     if seen:
-        characters = seen
+        characters = [seen[0].value]
         seen, tokens = lookahead(tokens, TokenType.COMMA, TokenType.CHARACTER)
         while seen:
-            characters.append(seen[1])
+            characters.append(seen[1].value)
             seen, tokens = lookahead(tokens, TokenType.COMMA, TokenType.CHARACTER)
         return characters, tokens
     else:
@@ -64,7 +64,7 @@ def parse_language_definitions(tokens):
 def parse_language_definition(tokens):
     seen, tokens = lookahead(tokens, TokenType.LET, TokenType.SYMBOL, TokenType.ASSIGN, TokenType.SYMBOL, TokenType.ASTERISK, TokenType.NEWLINE)
     if seen:
-        return ast.LanguageDefinition(seen[1], seen[3]), tokens
+        return ast.LanguageDefinition(seen[1].value, seen[3].value), tokens
     else:
         return None, tokens
 
@@ -79,7 +79,7 @@ def parse_string_definitions(tokens):
 def parse_string_definition(tokens):
     seen, tokens = lookahead(tokens, TokenType.LET, TokenType.SYMBOL, TokenType.ASSIGN, TokenType.STRING, TokenType.IN, TokenType.SYMBOL, TokenType.NEWLINE)
     if seen:
-        return ast.StringDefinition(seen[1], seen[3], seen[5]), tokens
+        return ast.StringDefinition(seen[1].value, seen[3].value, seen[5].value), tokens
     else:
         return None, tokens
 
