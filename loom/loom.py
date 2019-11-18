@@ -5,6 +5,7 @@ import sys
 
 from token import tokenize
 from parse import parse
+from ast import ASTPrinter
 
 def parse_arguments():
     description = 'Loom is a toy programming language by Murray Steele'
@@ -19,7 +20,8 @@ def parse_arguments():
 def main():
     arguments = parse_arguments()
     with open(arguments['source_file']) as source:
-        print(parse(tokenize(source.read())))
+        tree = parse(tokenize(source.read()))
+        ASTPrinter().visit(tree)
 
 if __name__ == '__main__':
     main()
