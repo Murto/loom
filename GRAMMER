@@ -1,0 +1,29 @@
+NONTERMINALS
+============
+
+PROGRAM                  := { ALPHABET-DEFINITION }, { LANGUAGE-DEFINITION }, { STRING-DEFINITION }, { NEWLINE } ;
+ALPHABET-DEFINITION      := LET, SYMBOL, ASSIGN, LEFT-BRACE, [ CHARACTER-LIST ], RIGHT-BRACE, NEWLINE ;
+LANGUAGE-DEFINITION      := LET, SYMBOL, ASSIGN, SYMBOL, ASTERISK, NEWLINE ;
+STRING-DEFINITION        := LET, SYMBOL, ASSIGN, STRING, IN, SYMBOL, NEWLINE ;
+SYMBOL                   := LATIN-CHARACTER, { LATIN-CHARACTER } ;
+CHARACTER-LIST           := CHARACTER, { CHARACTER-LIST-CONTINUED } ;
+CHARACTER-LIST-CONTINUED := COMMA, CHARACTER ;
+CHARACTER                := CHARACTER-QUOTE, ASCII-CHARACTER, CHARACTER-QUOTE ;
+STRING                   := STRING-QUOTE, { ASCII-CHARACTER }, STRING-QUOTE ;
+
+
+TERMINALS
+=========
+
+LET             := "let" ;
+ASSIGN          := "=" ;
+NEWLINE         := "\n" ;
+LEFT-BRACE      := "{" ;
+RIGHT-BRACE     := "}" ;
+ASTERISK        := "*" ;
+IN              := "in"
+COMMA           := "," ;
+LATIN-CHARACTER := "a" | ... | "z" | "A" | ... | "Z" | "_" ;
+CHARACTER-QUOTE := "'" ;
+STRING-QUOTE    := "\"" ;
+ASCII-CHARACTER := ? Any printable ascii character ?
