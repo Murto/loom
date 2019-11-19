@@ -5,7 +5,7 @@ systems
 
 ## Continuous Integration Status
 
-| Branch  | Status                                              |
-| ------- |:---------------------------------------------------:|
-| master  | https://travis-ci.org/Murto/loom.svg?branch=master  |
-| develop | https://travis-ci.org/Murto/loom.svg?branch=develop |
+| Branch  | Status                                                                                                   |
+| ------- |:--------------------------------------------------------------------------------------------------------:|
+| master  | [![Build Status](https://travis-ci.org/Murto/loom.svg?branch=master)](https://travis-ci.org/Murto/loom)  |
+| develop | [![Build Status](https://travis-ci.org/Murto/loom.svg?branch=develop)](https://travis-ci.org/Murto/loom) |
