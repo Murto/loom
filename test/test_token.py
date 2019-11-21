@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-import loom
-from loom.token import TokenType, tokenize
+from loom import loomtoken
+from loomtoken import TokenType, tokenize
 import os
 import unittest
 
