@@ -13,6 +13,11 @@ class Program:
         self._language_definitions = list(language_definitions)
         self._string_definitions = list(string_definitions)
 
+    def __eq__(self, other):
+        return self._alphabet_definitions == other._alphabet_definitions  \
+            and self._language_definitions == other._language_definitions \
+            and self._string_definitions == other._string_definitions
+
     def accept(self, visitor):
         visitor.visit(self)
 
@@ -21,6 +26,10 @@ class AlphabetDefinition(AST):
     def __init__(self, symbol, characters):
         self._symbol = symbol
         self._characters = characters
+
+    def __eq__(self, other):
+        return self._symbol == other._symbol \
+            and self._characters == other._characters
 
     def accept(self, visitor):
         visitor.visit(self)
@@ -31,6 +40,10 @@ class LanguageDefinition(AST):
         self._symbol = symbol
         self._alphabet_symbol = alphabet_symbol
 
+    def __eq__(self, other):
+        return self._symbol == other._symbol \
+            and self._alphabet_symbol == other._alphabet_symbol
+
     def accept(self, visitor):
         visitor.visit(self)
 
@@ -40,6 +53,11 @@ class StringDefinition(AST):
         self._symbol = symbol
         self._string = string
         self._language_symbol = language_symbol
+
+    def __eq__(self, other):
+        return self._symbol == other._symbol  \
+            and self._string == other._string \
+            and self._language_symbol == other._language_symbol
 
     def accept(self, visitor):
         visitor.visit(self)
