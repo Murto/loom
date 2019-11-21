@@ -3,9 +3,9 @@
 import argparse
 import sys
 
-from token import tokenize
-from parse import parse
-from ast import ASTPrinter, TypeChecker
+from loomtoken import tokenize
+from loomparse import parse
+from loomast import ASTPrinter, TypeChecker
 
 def parse_arguments():
     description = 'Loom is a toy programming language by Murray Steele'
