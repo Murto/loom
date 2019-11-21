@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
-import ast
-from token import Token, TokenType
+import loomast
+import loomtoken
+from loomast import Program, AlphabetDefinition, LanguageDefinition, StringDefinition
+from loomtoken import Token, TokenType
 
 def lookahead(tokens, *expected):
     seen = all([ token.type == type for (token, type) in zip(tokens, expected) ])
@@ -18,7 +20,7 @@ def parse(tokens):
     if tokens:
         raise RuntimeError(f'Unexpected token {tokens[0].type}')
     else:
-        return ast.Program(alphabet_definitions, language_definitions, string_definitions)
+        return Program(alphabet_definitions, language_definitions, string_definitions)
 
 def parse_alphabet_definitions(tokens):
     alphabet_definitions = list()
@@ -35,7 +37,7 @@ def parse_alphabet_definition(tokens):
         character_list, tokens = parse_character_list(tokens)
         seen, tokens = lookahead(tokens, TokenType.RIGHT_BRACE, TokenType.NEWLINE)
         if seen:
-            return ast.AlphabetDefinition(symbol, character_list), tokens
+            return AlphabetDefinition(symbol, character_list), tokens
         else:
             return None, tokens
     else:
@@ -64,7 +66,7 @@ def parse_language_definitions(tokens):
 def parse_language_definition(tokens):
     seen, tokens = lookahead(tokens, TokenType.LET, TokenType.SYMBOL, TokenType.ASSIGN, TokenType.SYMBOL, TokenType.ASTERISK, TokenType.NEWLINE)
     if seen:
-        return ast.LanguageDefinition(seen[1].value, seen[3].value), tokens
+        return LanguageDefinition(seen[1].value, seen[3].value), tokens
     else:
         return None, tokens
 
@@ -79,7 +81,7 @@ def parse_string_definitions(tokens):
 def parse_string_definition(tokens):
     seen, tokens = lookahead(tokens, TokenType.LET, TokenType.SYMBOL, TokenType.ASSIGN, TokenType.STRING, TokenType.IN, TokenType.SYMBOL, TokenType.NEWLINE)
     if seen:
-        return ast.StringDefinition(seen[1].value, seen[3].value, seen[5].value), tokens
+        return StringDefinition(seen[1].value, seen[3].value, seen[5].value), tokens
     else:
         return None, tokens
 
