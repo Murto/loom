@@ -1,1 +1,1 @@
-let test = "test" in test
+let test = [test] in test

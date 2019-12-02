@@ -2,7 +2,7 @@
 
 import loom
 from loom import loomast, loomtoken, loomparse
-from loomast import Program, AlphabetDefinition, LanguageDefinition, StringDefinition
+from loomast import Program, AlphabetDefinition, LanguageDefinition, StringDefinition, String
 from loomparse import parse
 from loomtoken import tokenize
 import os
@@ -37,7 +37,7 @@ class TestParse(unittest.TestCase):
             self.assertEqual(actual, EXPECTED)
 
     def test_string_definition(self):
-        EXPECTED = Program([], [], [StringDefinition('test', 'test', 'test')])
+        EXPECTED = Program([], [], [StringDefinition('test', String(['test']), 'test')])
         FILE_PATH = os.path.join(DATA_PATH, 'string_definition_parse.lm')
         with open(FILE_PATH) as source:
             tokens = tokenize(source.read())
@@ -48,7 +48,7 @@ class TestParse(unittest.TestCase):
         EXPECTED = Program(                            \
             [AlphabetDefinition('binary', ['0', '1'])],\
             [LanguageDefinition('strings', 'binary')], \
-            [StringDefinition('zero', '0', 'strings')])
+            [StringDefinition('zero', String(['0']), 'strings')])
         FILE_PATH = os.path.join(DATA_PATH, 'binary.lm')
         with open(FILE_PATH) as source:
             tokens = tokenize(source.read())

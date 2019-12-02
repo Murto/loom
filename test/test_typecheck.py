@@ -21,8 +21,8 @@ class TestTupecheck(unittest.TestCase):
             except RuntimeError:
                 self.fail('TypeChecker raised error unexpectedly')
 
-    def test_emptu_typecheck(self):
-        FILE_PATH = os.path.join(DATA_PATH, 'alphabet_definition_parse.lm')
+    def test_alphabet_typecheck(self):
+        FILE_PATH = os.path.join(DATA_PATH, 'alphabet_definition_typecheck.lm')
         with open(FILE_PATH) as source:
             tokens = tokenize(source.read())
             tree = parse(tokens)
@@ -31,8 +31,8 @@ class TestTupecheck(unittest.TestCase):
             except RuntimeError:
                 self.fail('TypeChecker raised error unexpectedly')
 
-    def test_emptu_typecheck(self):
-        FILE_PATH = os.path.join(DATA_PATH, 'language_definition_parse.lm')
+    def test_language_typecheck(self):
+        FILE_PATH = os.path.join(DATA_PATH, 'language_definition_typecheck.lm')
         with open(FILE_PATH) as source:
             tokens = tokenize(source.read())
             tree = parse(tokens)
@@ -41,8 +41,8 @@ class TestTupecheck(unittest.TestCase):
             except RuntimeError:
                 self.fail('TypeChecker raised error unexpectedly')
 
-    def test_emptu_typecheck(self):
-        FILE_PATH = os.path.join(DATA_PATH, 'string_definition_parse.lm')
+    def test_string_typecheck(self):
+        FILE_PATH = os.path.join(DATA_PATH, 'string_definition_typecheck.lm')
         with open(FILE_PATH) as source:
             tokens = tokenize(source.read())
             tree = parse(tokens)
