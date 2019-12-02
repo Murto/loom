@@ -2,7 +2,7 @@
 
 import loomast
 import loomtoken
-from loomast import Program, AlphabetDefinition, LanguageDefinition, StringDefinition
+from loomast import Program, AlphabetDefinition, LanguageDefinition, StringDefinition, String
 from loomtoken import Token, TokenType
 
 def lookahead(tokens, *expected):
@@ -16,7 +16,7 @@ def parse(tokens):
     alphabet_definitions, tokens = parse_alphabet_definitions(tokens)
     language_definitions, tokens = parse_language_definitions(tokens)
     string_definitions, tokens = parse_string_definitions(tokens)
-    parse_newlines(tokens)
+    tokens = parse_newlines(tokens)
     if tokens:
         raise RuntimeError(f'Unexpected token {tokens[0].type}')
     else:
@@ -34,24 +34,24 @@ def parse_alphabet_definition(tokens):
     seen, tokens = lookahead(tokens, TokenType.LET, TokenType.SYMBOL, TokenType.ASSIGN, TokenType.LEFT_BRACE)
     if seen:
         symbol = seen[1].value
-        character_list, tokens = parse_character_list(tokens)
+        symbol_list, tokens = parse_symbol_list(tokens)
         seen, tokens = lookahead(tokens, TokenType.RIGHT_BRACE, TokenType.NEWLINE)
         if seen:
-            return AlphabetDefinition(symbol, character_list), tokens
+            return AlphabetDefinition(symbol, symbol_list), tokens
         else:
             return None, tokens
     else:
         return None, tokens
 
-def parse_character_list(tokens):
-    seen, tokens = lookahead(tokens, TokenType.CHARACTER)
+def parse_symbol_list(tokens):
+    seen, tokens = lookahead(tokens, TokenType.SYMBOL)
     if seen:
-        characters = [seen[0].value]
-        seen, tokens = lookahead(tokens, TokenType.COMMA, TokenType.CHARACTER)
+        symbols = [seen[0].value]
+        seen, tokens = lookahead(tokens, TokenType.COMMA, TokenType.SYMBOL)
         while seen:
-            characters.append(seen[1].value)
-            seen, tokens = lookahead(tokens, TokenType.COMMA, TokenType.CHARACTER)
-        return characters, tokens
+            symbols.append(seen[1].value)
+            seen, tokens = lookahead(tokens, TokenType.COMMA, TokenType.SYMBOL)
+        return symbols, tokens
     else:
         return [], tokens
 
@@ -79,9 +79,31 @@ def parse_string_definitions(tokens):
     return string_definitions, tokens
 
 def parse_string_definition(tokens):
-    seen, tokens = lookahead(tokens, TokenType.LET, TokenType.SYMBOL, TokenType.ASSIGN, TokenType.STRING, TokenType.IN, TokenType.SYMBOL, TokenType.NEWLINE)
+    seen, tokens = lookahead(tokens, TokenType.LET, TokenType.SYMBOL, TokenType.ASSIGN)
     if seen:
-        return StringDefinition(seen[1].value, seen[3].value, seen[5].value), tokens
+        symbol = seen[1].value
+        string, tokens = parse_string(tokens)
+        if string:
+            seen, tokens = lookahead(tokens, TokenType.IN, TokenType.SYMBOL, TokenType.NEWLINE)
+            if seen:
+                alphabet_symbol = seen[1].value
+                return StringDefinition(symbol, string, alphabet_symbol), tokens
+            else:
+                return None, tokens
+        else:
+            return None, tokens
+    else:
+        return None, tokens
+
+def parse_string(tokens):
+    seen, tokens = lookahead(tokens, TokenType.LEFT_BRACKET)
+    if seen:
+        symbols, tokens = parse_symbol_list(tokens)
+        seen, tokens = lookahead(tokens, TokenType.RIGHT_BRACKET)
+        if seen:
+            return String(symbols), tokens
+        else:
+            return None, tokens
     else:
         return None, tokens
 
@@ -89,3 +111,4 @@ def parse_newlines(tokens):
     seen, tokens = lookahead(tokens, TokenType.NEWLINE)
     while seen:
         seen, tokens = lookahead(tokens, TokenType.NEWLINE)
+    return tokens

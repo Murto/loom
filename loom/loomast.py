@@ -23,13 +23,13 @@ class Program:
 
 class AlphabetDefinition(AST):
 
-    def __init__(self, symbol, characters):
+    def __init__(self, symbol, symbols):
         self._symbol = symbol
-        self._characters = characters
+        self._symbols = symbols
 
     def __eq__(self, other):
         return self._symbol == other._symbol \
-            and self._characters == other._characters
+            and self._symbols == other._symbols
 
     def accept(self, visitor):
         visitor.visit(self)
@@ -62,6 +62,17 @@ class StringDefinition(AST):
     def accept(self, visitor):
         visitor.visit(self)
 
+class String(AST):
+
+    def __init__(self, symbols):
+        self._symbols = symbols
+
+    def __eq__(self, other):
+        return self._symbols == other._symbols
+
+    def accept(self, visitor):
+        visitor.visit(self)
+
 class ASTPrinter:
 
     def visit(self, node):
@@ -73,6 +84,8 @@ class ASTPrinter:
             self.__visit_language_definition(node)
         elif type(node) == StringDefinition:
             self.__visit_string_definition(node)
+        elif type(node) == String:
+            self.__visit_string(node)
 
     def __visit_program(self, program):
         print('(PROGRAM : ', end='')
@@ -94,7 +107,7 @@ class ASTPrinter:
     def __visit_alphabet_definition(self, alphabet_definition):
         print('(ALPHABET-DEFINITION : ', end='')
         print(alphabet_definition._symbol, end=', ')
-        print(alphabet_definition._characters, end='')
+        print(alphabet_definition._symbols, end='')
         print(')', end='')
 
     def __visit_language_definition(self, language_definition):
@@ -106,14 +119,23 @@ class ASTPrinter:
     def __visit_string_definition(self, string_definition):
         print('(STRING-DEFINITION : ', end='')
         print(string_definition._symbol, end=', ')
-        print(f'"{string_definition._string}"', end=', ')
+        string_definition._string.accept(self)
+        print(', ', end='')
         print(string_definition._language_symbol, end='*')
+        print(')', end='')
+
+    def __visit_string(self, string):
+        print('(STRING : ', end='')
+        delim = ''
+        for symbol in string._symbols:
+            print(delim, end='')
+            print(symbol, end='')
         print(')', end='')
 
 class TypeChecker:
 
     def __init__(self):
-        self.__symbols = set()
+        self.__symbols = set(['0', '1'])
         self.__alphabets = set()
         self.__languages = set()
         self.__strings = set()
@@ -127,6 +149,8 @@ class TypeChecker:
             self.__visit_language_definition(node)
         elif type(node) == StringDefinition:
             self.__visit_string_definition(node)
+        elif type(node) == String:
+            self.__visit_string(node)
 
     def __visit_program(self, program):
         for alphabet_definition in program._alphabet_definitions:
@@ -137,6 +161,9 @@ class TypeChecker:
             string_definition.accept(self)
 
     def __visit_alphabet_definition(self, alphabet_definition):
+        for symbol in alphabet_definition._symbols:
+            if symbol not in self.__symbols:
+                raise RuntimeError('Symbol not declared')
         symbol = alphabet_definition._symbol
         if symbol in self.__symbols:
             raise RuntimeError('Symbol already declared')
@@ -165,3 +192,8 @@ class TypeChecker:
         else:
             self.__symbols.add(symbol)
             self.__strings.add(symbol)
+
+    def __visit_string(self, string):
+        for symbol in string._symbols:
+            if symbol not in self.__symbols:
+                raise RuntimeError('Symbol not declared')

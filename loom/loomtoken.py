@@ -4,17 +4,19 @@ import enum
 import re
 
 class TokenType(enum.Enum):
-    LET         = enum.auto()
-    ASSIGN      = enum.auto()
-    NEWLINE     = enum.auto() 
-    LEFT_BRACE  = enum.auto() 
-    RIGHT_BRACE = enum.auto() 
-    ASTERISK    = enum.auto() 
-    IN          = enum.auto() 
-    COMMA       = enum.auto() 
-    SYMBOL      = enum.auto() 
-    CHARACTER   = enum.auto() 
-    STRING      = enum.auto() 
+    LET           = enum.auto()
+    ASSIGN        = enum.auto()
+    NEWLINE       = enum.auto() 
+    LEFT_BRACE    = enum.auto() 
+    RIGHT_BRACE   = enum.auto() 
+    LEFT_BRACKET  = enum.auto() 
+    RIGHT_BRACKET = enum.auto() 
+    ASTERISK      = enum.auto() 
+    IN            = enum.auto() 
+    COMMA         = enum.auto() 
+    SYMBOL        = enum.auto() 
+    CHARACTER     = enum.auto() 
+    STRING        = enum.auto() 
 
 class Token:
 
@@ -30,12 +32,12 @@ def tokenize(source):
         re.compile('\n') : TokenType.NEWLINE,
         re.compile('{') : TokenType.LEFT_BRACE,
         re.compile('}') : TokenType.RIGHT_BRACE,
+        re.compile('\\[') : TokenType.LEFT_BRACKET,
+        re.compile('\\]') : TokenType.RIGHT_BRACKET,
         re.compile('\\*') : TokenType.ASTERISK,
         re.compile('in') : TokenType.IN,
         re.compile(',') : TokenType.COMMA,
-        re.compile('\\w+') : TokenType.SYMBOL,
-        re.compile('\'\\S\'') : TokenType.CHARACTER,
-        re.compile('"\\S*"') : TokenType.STRING
+        re.compile('[^={}[\\]*, \t\n]+') : TokenType.SYMBOL,
     }
     line = 1;
     column = 1;
