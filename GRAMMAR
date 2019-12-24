@@ -23,7 +23,7 @@ PARENTHESIS-EXPRESSION := LEFT-PARENTHESIS, SET-EXPRESSION, RIGHT-PARENTHESIS
 
 
 SET := LEFT-BRACE, EXPRESSION-LIST, RIGHT-BRACE
-     | EMPTY ;
+     | EMPTY-SET ;
 
 
 STRING-EXPRESSION        := CONCATENATION-EXPRESSION ;
@@ -31,7 +31,7 @@ CONCATENATION-EXPRESSION := STRING, { PLUS, CONCATENATION-EXPRESSION } ;
 
 
 STRING := BIT, { BIT }
-        | EPSILON ;
+        | EMPTY-STRING ;
 
 
 EXPRESSION-LIST      := EXPRESSION, { EXPRESSION-MORE } ;
@@ -45,20 +45,20 @@ EXPRESSION := SET-EXPRESSION
 TERMINALS
 =========
 
-NEWLINE          := ? newline character ? ;
-SYMBOL           := ? non-empty sequence of non-whitespace characters ? ;
-DEFINE           := ":=" ;
-IN               := "∈" ;
-UNION            := "∪" ;
-INTERSECT        := "∩" ;
-PRODUCT          := "×" ;
-DIFFERENCE       := "-" ;
-COMPLEMENT       := "¬" ;
-LEFT-PARENTESIS  := "(" ;
-RIGHT-PARENTESIS := ")" ;
-LEFT-BRACE       := "{" ;
-RIGHT-BRACE      := "}" ;
-EMPTY            := "∅" ;
-EPSILON          := "ε" ;
-COMMA            := "," ;
-BIT              := "0" | "1" ;
+NEWLINE           := ? newline character ? ;
+SYMBOL            := ? non-empty sequence of non-whitespace characters ? ;
+DEFINE            := ":=" ;
+IN                := "∈" ;
+UNION             := "∪" ;
+INTERSECT         := "∩" ;
+PRODUCT           := "×" ;
+DIFFERENCE        := "-" ;
+COMPLEMENT        := "¬" ;
+LEFT-PARENTHESIS  := "(" ;
+RIGHT-PARENTHESIS := ")" ;
+LEFT-BRACE        := "{" ;
+RIGHT-BRACE       := "}" ;
+EMPTY-SET         := "∅" ;
+EMPTY-STRING      := "ε" ;
+COMMA             := "," ;
+BIT               := "0" | "1" ;
