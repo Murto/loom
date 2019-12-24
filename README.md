@@ -1,7 +1,9 @@
 # Loom
 
-Loom is a toy language for playing around with data represention and type
-systems
+Loom is a toy language for playing around with sets and strings, focusing on
+the implementations of set and string operations with regards to formal
+language theory.
+
 
 ## Continuous Integration
 
