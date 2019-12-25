@@ -8,7 +8,7 @@ from loomparse import parse
 from loomast import ASTPrinter, TypeChecker
 
 def parse_arguments():
-    description = 'Loom is a toy programming language by Murray Steele'
+    description = 'Loom is a programming language by Murray Steele'
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument('source_file',
                         metavar='source_file',
@@ -20,9 +20,8 @@ def parse_arguments():
 def main():
     arguments = parse_arguments()
     with open(arguments['source_file']) as source:
-        tree = parse(tokenize(source.read()))
-        ASTPrinter().visit(tree)
-        TypeChecker().visit(tree)
+        tokens = list(tokenize(source.read()))
+        print(tokens)
 
 if __name__ == '__main__':
     main()
