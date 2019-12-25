@@ -19,7 +19,6 @@ class TokenType(enum.Enum):
     LEFT_BRACE        = enum.auto() 
     RIGHT_BRACE       = enum.auto() 
     EMPTY_SET         = enum.auto() 
-    EMPTY_STRING      = enum.auto() 
     COMMA             = enum.auto() 
     STRING            = enum.auto() 
 
@@ -29,6 +28,9 @@ class Token(abc.ABC):
 
 class Newline(Token):
     
+    def __eq__(self, other):
+        return type(other) == Newline
+
     def __repr__(self):
         return '<Newline>'
 
@@ -37,85 +39,135 @@ class Symbol(Token):
     def __init__(self, symbol):
         self.symbol = symbol
 
+    def __eq__(self, other):
+        return type(other) == Symbol
+
+    def __eq__(self, other):
+        return self.symbol == other.symbol
+
     def __repr__(self):
         return f'<Symbol : {self.symbol}>'
 
 class Define(Token):
+
+    def __eq__(self, other):
+        return type(other) == Define
 
     def __repr__(self):
         return '<Define>'
 
 class In(Token):
     
+    def __eq__(self, other):
+        return type(other) == In
+
     def __repr__(self):
         return '<In>'
 
 class Union(Token):
+
+    def __eq__(self, other):
+        return type(other) == Union
 
     def __repr__(self):
         return '<Union>'
 
 class Intersect(Token):
     
+    def __eq__(self, other):
+        return type(other) == Intersect
+
     def __repr__(self):
         return '<Intersect>'
 
 class Product(Token):
+
+    def __eq__(self, other):
+        return type(other) == Product
 
     def __repr__(self):
         return '<Product>'
 
 class Difference(Token):
     
+    def __eq__(self, other):
+        return type(other) == Difference
+
     def __repr__(self):
         return '<Difference>'
 
 class Complement(Token):
     
+    def __eq__(self, other):
+        return type(other) == Complement
+
     def __repr__(self):
         return '<Complement>'
 
 class LeftParenthesis(Token):
+
+    def __eq__(self, other):
+        return type(other) == LeftParenthesis
 
     def __repr__(self):
         return '<Left Parenthesis>'
 
 class RightParenthesis(Token):
     
+    def __eq__(self, other):
+        return type(other) == RightParenthesis
+
     def __repr__(self):
         return '<Right Parenthesis>'
 
 class LeftBrace(Token):
     
+    def __eq__(self, other):
+        return type(other) == LeftBrace
+
     def __repr__(self):
         return '<Left Brace>'
 
 
 class RightBrace(Token):
 
+    def __eq__(self, other):
+        return type(other) == RightBrace
+
     def __repr__(self):
         return '<Right Brace>'
 
 class EmptySet(Token):
 
+    def __eq__(self, other):
+        return type(other) == EmptySet
+
     def __repr__(self):
         return '<Empty Set>'
 
 class Comma(Token):
-    
+
+    def __eq__(self, other):
+        return type(other) == Comma
+
     def __repr__(self):
         return '<Comma>'
 
 class String(Token):
 
     def __init__(self, data):
-        self.value = list()
+        self.string = list()
+        if data == 'ε':
+            return
         for c in data:
-            self.value.append(int(c))
+            self.string.append(int(c))
     
+    def __eq__(self, other):
+        return type(other) == String and self.string == other.string
+
     def __repr__(self):
-        if self.value:
-            return f'<String : {"".join(str(x) for x in self.value)}>'
+        if self.string:
+            return f'<String : {"".join(str(x) for x in self.string)}>'
         else:
             return '<String : ε>'
 
@@ -148,8 +200,6 @@ def make_token(type, value):
         return RightBrace()
     elif type == TokenType.EMPTY_SET:
         return EmptySet()
-    elif type == TokenType.EMPTY_STRING:
-        return String('')
     elif type == TokenType.COMMA:
         return Comma()
     elif type == TokenType.STRING:
@@ -165,6 +215,7 @@ def tokenize(source):
         re.compile('∈') : TokenType.IN,
         re.compile('∪') : TokenType.UNION,
         re.compile('∩') : TokenType.INTERSECT,
+        re.compile('×') : TokenType.PRODUCT,
         re.compile('-') : TokenType.DIFFERENCE,
         re.compile('¬') : TokenType.COMPLEMENT,
         re.compile('\\(') : TokenType.LEFT_PARENTHESIS,
@@ -172,8 +223,8 @@ def tokenize(source):
         re.compile('{') : TokenType.LEFT_BRACE,
         re.compile('}') : TokenType.RIGHT_BRACE,
         re.compile('∅') : TokenType.EMPTY_SET,
-        re.compile('ε') : TokenType.EMPTY_STRING,
         re.compile(',') : TokenType.COMMA,
+        re.compile('ε') : TokenType.STRING,
         re.compile('(1|0)+') : TokenType.STRING,
         re.compile('[a-zA-Z_]+') : TokenType.SYMBOL,
     }
@@ -197,4 +248,4 @@ def tokenize(source):
                     found = True
                     break
             if not found:
-                raise RuntimeError(f'Unknown token at line {line} column {column}')
+                raise RuntimeError(f'Unknown token at line {line} column {column}: {source[:10]}')
