@@ -188,62 +188,62 @@ class ASTStringifier:
         raise RuntimeError('Unknown node type')
 
     def visit_program(self, program):
-        return f'<PROGRAM : {", ".join([ s.accept(self) for s in program.statements ])}>'
+        return f'(PROGRAM : {", ".join([ s.accept(self) for s in program.statements ])})'
 
     def visit_language_definition(self, language_definition):
-        return '<LANGUAGE-DEFINITION : ' \
+        return '(LANGUAGE-DEFINITION : ' \
                 f'{language_definition.symbol.accept(self)}, ' \
-                f'{language_definition.expression.accept(self)}>'
+                f'{language_definition.expression.accept(self)})'
 
     def visit_string_definition(self, string_definition):
-        return '<STRING-DEFINITION : ' \
+        return '(STRING-DEFINITION : ' \
                 f'{string_definition.symbol.accept(self)}, ' \
                 f'{string_definition.string_expression.accept(self)}, ' \
-                f'{string_definition.set_expression.accept(self)}>'
+                f'{string_definition.set_expression.accept(self)})'
  
     def visit_union_expression(self, union_expression):
-        return '<UNION-EXPRESSION : ' \
+        return '(UNION-EXPRESSION : ' \
                 f'{union_expression.left.accept(self)}, ' \
-                f'{union_expression.right.accept(self)}>'
+                f'{union_expression.right.accept(self)})'
 
     def visit_intersect_expression(self, intersect_expression):
-        return '<INTERSECT-EXPRESSION : ' \
+        return '(INTERSECT-EXPRESSION : ' \
                 f'{intersect_expression.left.accept(self)}, ' \
-                f'{intersect_expression.right.accept(self)}>'
+                f'{intersect_expression.right.accept(self)})'
 
     def visit_product_expression(self, product_expression):
-        return '<PRODUCT-EXPRESSION : ' \
+        return '(PRODUCT-EXPRESSION : ' \
                 f'{product_expression.left.accept(self)}, ' \
-                f'{product_expression.right.accept(self)}>'
+                f'{product_expression.right.accept(self)})'
 
     def visit_difference_expression(self, difference_expression):
-        return '<DIFFERENCE-EXPRESSION : ' \
+        return '(DIFFERENCE-EXPRESSION : ' \
                 f'{difference_expression.left.accept(self)}, ' \
-                f'{difference_expression.right.accept(self)}>'
+                f'{difference_expression.right.accept(self)})'
 
     def visit_union_expression(self, complement_expression):
-        return '<COMPLEMENT-EXPRESSION : ' \
-                f'{complement_expression.expression.accept(self)}>'
+        return '(COMPLEMENT-EXPRESSION : ' \
+                f'{complement_expression.expression.accept(self)})'
 
     def visit_set(self, set):
-        return '<SET : ' \
-                f'{", ".join([ e.accept(self) for e in set.expressions ])}>'
+        return '(SET : ' \
+                f'{", ".join([ e.accept(self) for e in set.expressions ])})'
 
     def visit_symbol(self, symbol):
-        return '<SYMBOL : ' \
-                f'{symbol.identifier}>'
+        return '(SYMBOL : ' \
+                f'{symbol.identifier})'
     
     def visit_concatenation_expression(self, concatenation_expression):
-        return '<CONCATENATION-EXPRESSION : ' \
+        return '(CONCATENATION-EXPRESSION : ' \
                 '{concatenation_expression.left.accept(self), ' \
-                '{concatenation_expression.right.accept(self)>'
+                '{concatenation_expression.right.accept(self))'
 
     def visit_string(self, string):
         if string.bits:
-            return '<STRING : ' \
-                    f'{"".join(str(bit) for bit in string.bits)}>'
+            return '(STRING : ' \
+                    f'{"".join(str(bit) for bit in string.bits)})'
         else:
-            return '<STRING : ε>'
+            return '(STRING : ε)'
 
 
 class TypeChecker:
