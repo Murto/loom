@@ -19,7 +19,7 @@ class Program(AST):
         return self.statements == other.statements
 
     def accept(self, visitor):
-        visitor.visit(self)
+        return visitor.visit(self)
 
 class LanguageDefinition(AST):
 
@@ -32,7 +32,7 @@ class LanguageDefinition(AST):
             and self.expression == other.expression
     
     def accept(self, visitor):
-        visitor.visit(self)
+        return visitor.visit(self)
 
 class StringDefinition(AST):
     
@@ -47,7 +47,7 @@ class StringDefinition(AST):
             and self.set_expression == other.set_expression
 
     def accept(self, visitor):
-        visitor.visit(self)
+        return visitor.visit(self)
 
 class UnionExpression(AST):
     
@@ -60,7 +60,7 @@ class UnionExpression(AST):
             and self.right == other.right
 
     def accept(self, visitor):
-        visitor.visit(self)
+        return visitor.visit(self)
 
 class IntersectExpression(AST):
     
@@ -73,7 +73,7 @@ class IntersectExpression(AST):
             and self.right == other.right;
 
     def accept(self, visitor):
-        visitor.visit(self)
+        return visitor.visit(self)
 
 class ProductExpression(AST):
     
@@ -86,7 +86,7 @@ class ProductExpression(AST):
             and self.right == other.right;
 
     def accept(self, visitor):
-        visitor.visit(self)
+        return visitor.visit(self)
 
 class DifferenceExpression(AST):
     
@@ -99,7 +99,7 @@ class DifferenceExpression(AST):
             and self.right == other.right;
 
     def accept(self, visitor):
-        visitor.visit(self)
+        return visitor.visit(self)
 
 class ComplementExpression(AST):
     
@@ -110,7 +110,7 @@ class ComplementExpression(AST):
         return self.expression == other.expression
 
     def accept(self, visitor):
-        visitor.visit(self)
+        return visitor.visit(self)
 
 class Set(AST):
     
@@ -121,18 +121,18 @@ class Set(AST):
         return self.expressions == other.expressions
 
     def accept(self, visitor):
-        visitor.visit(self)
+        return visitor.visit(self)
 
 class Symbol(AST):
 
     def __init__(self, identifier):
-        self.identifier = indentifier
+        self.identifier = identifier
 
     def __eq__(self, other):
         return self.identifier == other.identifier
 
     def accept(self, visitor):
-        visitor.visit(self)
+        return visitor.visit(self)
 
 class ConcatenationExpression(AST):
 
@@ -145,7 +145,7 @@ class ConcatenationExpression(AST):
             and self.right == right
 
     def accept(self, visitor):
-        visitor.visit(self)
+        return visitor.visit(self)
 
 class String(AST):
 
@@ -177,8 +177,6 @@ class ASTStringifier:
             return self.visit_difference_expression(node)
         elif type(node) == ComplementExpression:
             return self.visit_complement_expression(node)
-        elif type(node) == ParenthesisExpression:
-            return self.visit_parenthesis_expression(node)
         elif type(node) == Set:
             return self.visit_set(node)
         elif type(node) == Symbol:
@@ -187,66 +185,65 @@ class ASTStringifier:
             return self.visit_concatenation_expression(node)
         elif type(node) == String:
             return self.visit_string(node)
+        raise RuntimeError('Unknown node type')
 
     def visit_program(self, program):
-        return f('<PROGRAM : '
-                '{", ".join(s.accept(self) for s in program.statements)}>')
+        return f'<PROGRAM : {", ".join([ s.accept(self) for s in program.statements ])}>'
 
     def visit_language_definition(self, language_definition):
-        return f('<LANGUAGE-DEFINITION : '
-                '{language_definition.symbol.accept(self)}, '
-                '{language_definition.expression.accept(self)}>')
+        return '<LANGUAGE-DEFINITION : ' \
+                f'{language_definition.symbol.accept(self)}, ' \
+                f'{language_definition.expression.accept(self)}>'
 
     def visit_string_definition(self, string_definition):
-        return f('<STRING-DEFINITION : '
-                '{string_definition.symbol.accept(self)}, '
-                '{string_definition.string_expression.accept(self)}, '
-                '{string_definition.set_expression.accept(self)}>')
+        return '<STRING-DEFINITION : ' \
+                f'{string_definition.symbol.accept(self)}, ' \
+                f'{string_definition.string_expression.accept(self)}, ' \
+                f'{string_definition.set_expression.accept(self)}>'
  
     def visit_union_expression(self, union_expression):
-        return f('<UNION-EXPRESSION : '
-                '{union_expression.left.accept(self)}, '
-                '{union_expression.right.accept(self)}>')
+        return '<UNION-EXPRESSION : ' \
+                f'{union_expression.left.accept(self)}, ' \
+                f'{union_expression.right.accept(self)}>'
 
     def visit_intersect_expression(self, intersect_expression):
-        return f('<INTERSECT-EXPRESSION : '
-                '{intersect_expression.left.accept(self)}, '
-                '{intersect_expression.right.accept(self)}>')
+        return '<INTERSECT-EXPRESSION : ' \
+                f'{intersect_expression.left.accept(self)}, ' \
+                f'{intersect_expression.right.accept(self)}>'
 
     def visit_product_expression(self, product_expression):
-        return f('<PRODUCT-EXPRESSION : '
-                '{product_expression.left.accept(self)}, '
-                '{product_expression.right.accept(self)}>')
+        return '<PRODUCT-EXPRESSION : ' \
+                f'{product_expression.left.accept(self)}, ' \
+                f'{product_expression.right.accept(self)}>'
 
     def visit_difference_expression(self, difference_expression):
-        return f('<DIFFERENCE-EXPRESSION : '
-                '{difference_expression.left.accept(self)}, '
-                '{difference_expression.right.accept(self)}>')
+        return '<DIFFERENCE-EXPRESSION : ' \
+                f'{difference_expression.left.accept(self)}, ' \
+                f'{difference_expression.right.accept(self)}>'
 
     def visit_union_expression(self, complement_expression):
-        return f('<COMPLEMENT-EXPRESSION : '
-                '{complement_expression.expression.accept(self)}>')
-
-    def visit_parenthesis_expression(self, parenthesis_expression):
-        return f('<PARENTHESIS-EXPRESSION : '
-                '{parenthesis_expression.expression.accept(self)}>')
+        return '<COMPLEMENT-EXPRESSION : ' \
+                f'{complement_expression.expression.accept(self)}>'
 
     def visit_set(self, set):
-        return f('<SET : '
-                '{", ".join(e.accept(self) for e in set.expressions)}>')
+        return '<SET : ' \
+                f'{", ".join([ e.accept(self) for e in set.expressions ])}>'
 
     def visit_symbol(self, symbol):
-        return f('<SYMBOL : '
-                '{symbol.accept(this)}>')
+        return '<SYMBOL : ' \
+                f'{symbol.identifier}>'
     
     def visit_concatenation_expression(self, concatenation_expression):
-        return f('<CONCATENATION-EXPRESSION : '
-                '{concatenation_expression.left.accept(self), '
-                '{concatenation_expression.right.accept(self)>')
+        return '<CONCATENATION-EXPRESSION : ' \
+                '{concatenation_expression.left.accept(self), ' \
+                '{concatenation_expression.right.accept(self)>'
 
     def visit_string(self, string):
-        return f('<STRING : '
-                '{"".join(str(bit) for bit in string.bits)}>')
+        if string.bits:
+            return '<STRING : ' \
+                    f'{"".join(str(bit) for bit in string.bits)}>'
+        else:
+            return '<STRING : ε>'
 
 
 class TypeChecker:
