@@ -1,114 +1,229 @@
 #!/usr/bin/env python3
 
-import loomast
+from copy import deepcopy
 import loomtoken
-from loomast import Program, AlphabetDefinition, LanguageDefinition, StringDefinition, String
-from loomtoken import Token, TokenType
+from loomtoken import TokenType
 
 def lookahead(tokens, *expected):
-    seen = all([ token.type == type for (token, type) in zip(tokens, expected) ])
-    if seen:
-        return tokens[:len(expected)], tokens[len(expected):]
-    else:
+    seen = all([ type(token) == expected_type for (token, expected_type) in zip(tokens, expected) ])
+    if not seen:
         return [], tokens
+    return tokens[:len(expected)], tokens[len(expected):]
 
 def parse(tokens):
-    alphabet_definitions, tokens = parse_alphabet_definitions(tokens)
-    language_definitions, tokens = parse_language_definitions(tokens)
-    string_definitions, tokens = parse_string_definitions(tokens)
-    tokens = parse_newlines(tokens)
-    if tokens:
-        raise RuntimeError(f'Unexpected token {tokens[0].type}')
-    else:
-        return Program(alphabet_definitions, language_definitions, string_definitions)
+    next_tokens = deepcopy(tokens)
+    statements, next_tokens = parse_statements(next_tokens)
+    next_tokens = parse_newlines(next_tokens)
+    if next_tokens:
+        raise RuntimeError(f'Unexpected token {next_tokens[0]}')
+    return Program(statements)
 
-def parse_alphabet_definitions(tokens):
-    alphabet_definitions = list()
-    alphabet_definition, tokens = parse_alphabet_definition(tokens)
-    while alphabet_definition:
-        alphabet_definitions.append(alphabet_definition)
-        alphabet_definition, tokens = parse_alphabet_definition(tokens)
-    return alphabet_definitions, tokens
+def parse_statements(tokens):
+    next_tokens = deepcopy(tokens)
+    statements = list()
+    statement, next_tokens = parse_statement(next_tokens)
+    while statement:
+        statements.append(statement)
+        statement, next_tokens = parse_statement(next_tokens)
+    return statements, next_tokens
 
-def parse_alphabet_definition(tokens):
-    seen, tokens = lookahead(tokens, TokenType.LET, TokenType.SYMBOL, TokenType.ASSIGN, TokenType.LEFT_BRACE)
-    if seen:
-        symbol = seen[1].value
-        symbol_list, tokens = parse_symbol_list(tokens)
-        seen, tokens = lookahead(tokens, TokenType.RIGHT_BRACE, TokenType.NEWLINE)
-        if seen:
-            return AlphabetDefinition(symbol, symbol_list), tokens
-        else:
-            return None, tokens
-    else:
-        return None, tokens
 
-def parse_symbol_list(tokens):
-    seen, tokens = lookahead(tokens, TokenType.SYMBOL)
-    if seen:
-        symbols = [seen[0].value]
-        seen, tokens = lookahead(tokens, TokenType.COMMA, TokenType.SYMBOL)
-        while seen:
-            symbols.append(seen[1].value)
-            seen, tokens = lookahead(tokens, TokenType.COMMA, TokenType.SYMBOL)
-        return symbols, tokens
-    else:
-        return [], tokens
-
-def parse_language_definitions(tokens):
-    language_definitions = list()
-    language_definition, tokens = parse_language_definition(tokens)
-    while language_definition:
-        language_definitions.append(language_definition)
-        language_definition, tokens = parse_language_definition(tokens)
-    return language_definitions, tokens
+def parse_statement(tokens):
+    next_tokens = deepcopy(tokens)
+    language_definition, next_tokens = parse_language_definition(next_tokens)
+    if language_definition:
+        return language_definition, next_tokens
+    string_definition, next_tokens = parse_string_definition(next_tokens)
+    if string_definition:
+        return string_definition, next_tokens
+    return None, tokens
+    
 
 def parse_language_definition(tokens):
-    seen, tokens = lookahead(tokens, TokenType.LET, TokenType.SYMBOL, TokenType.ASSIGN, TokenType.SYMBOL, TokenType.ASTERISK, TokenType.NEWLINE)
-    if seen:
-        return LanguageDefinition(seen[1].value, seen[3].value), tokens
-    else:
+    next_tokens = deepcopy(tokens)
+    seen, next_tokens = lookahead(next_tokens, loomtoken.Symbol, loomtoken.Define)
+    if not seen:
         return None, tokens
-
-def parse_string_definitions(tokens):
-    string_definitions = list()
-    string_definition, tokens = parse_string_definition(tokens)
-    while string_definition:
-        string_definitions.append(string_definition)
-        string_definition, tokens = parse_string_definition(tokens)
-    return string_definitions, tokens
+    symbol = loomast.Symbol(seen[0].identifier)
+    expression, next_tokens = parse_set_expression(next_tokens)
+    if not expression:
+        return None, tokens
+    seen, next_tokens = lookahead(next_tokens, loomtoken.Newline)
+    if not seen:
+        return None, tokens
+    return LanguageDefinition(symbol, expression), next_tokens
 
 def parse_string_definition(tokens):
-    seen, tokens = lookahead(tokens, TokenType.LET, TokenType.SYMBOL, TokenType.ASSIGN)
-    if seen:
-        symbol = seen[1].value
-        string, tokens = parse_string(tokens)
-        if string:
-            seen, tokens = lookahead(tokens, TokenType.IN, TokenType.SYMBOL, TokenType.NEWLINE)
-            if seen:
-                alphabet_symbol = seen[1].value
-                return StringDefinition(symbol, string, alphabet_symbol), tokens
-            else:
-                return None, tokens
-        else:
-            return None, tokens
-    else:
+    next_tokens = deepcopy(tokens)
+    seen, next_tokens = lookahead(next_tokens, loomtoken.Symbol, loomtoken.Define)
+    if not seen:
         return None, tokens
+    symbol = loomast.Symbol(seen[0].identifier)
+    string_expression, next_tokens = parse_string_expression(next_tokens)
+    if not string_expression:
+        return None, tokens
+    seen, next_tokens = lookahead(next_tokens, loomtoken.In)
+    if not seen:
+        return None, tokens
+    set_expression, next_tokens = parse_set_expression(next_tokens)
+    if not set_expression:
+        return None, tokens
+    seen, next_tokens = lookahead(next_tokens, loomtoken.Newline)
+    if not seen:
+        return None, tokens
+    return StringDefinition(symbol, string_expression, set_expression)
 
-def parse_string(tokens):
-    seen, tokens = lookahead(tokens, TokenType.LEFT_BRACKET)
-    if seen:
-        symbols, tokens = parse_symbol_list(tokens)
-        seen, tokens = lookahead(tokens, TokenType.RIGHT_BRACKET)
-        if seen:
-            return String(symbols), tokens
-        else:
-            return None, tokens
-    else:
+def parse_set_expression(tokens):
+    next_tokens = deepcopy(tokens)
+    return parse_union_expression(next_tokens)
+
+def parse_union_expression(tokens):
+    next_tokens = deepcopy(tokens)
+    left_expression, next_tokens = parse_intersect_expression(next_tokens)
+    if not left_expression:
         return None, tokens
+    seen, next_tokens = lookahead(next_tokens, loomtoken.Union)
+    if not seen:
+        return left_expression, next_tokens
+    right_expression, next_tokens = parse_union_expression(next_tokens)
+    if not right_expression:
+        return None, tokens
+    return loomast.UnionExpression(left_expression, right_expression), next_tokens
+
+def parse_intersect_expression(tokens):
+    next_tokens = deepcopy(tokens)
+    left_expression, next_tokens = parse_product_expression(next_tokens)
+    if not left_expression:
+        return None, tokens
+    seen, next_tokens = lookahead(next_tokens, loomtoken.Intersect)
+    if not seen:
+        return left_expression, next_tokens
+    right_expression, next_tokens = parse_intersect_expression(next_tokens)
+    if not right_expression:
+        return None, tokens
+    return loomast.IntersectExpression(left_expression, right_expression), next_tokens
+
+def parse_product_expression(tokens):
+    next_tokens = deepcopy(tokens)
+    left_expression, next_tokens = parse_difference_expression(next_tokens)
+    if not left_expression:
+        return None, tokens
+    seen, next_tokens = lookahead(next_tokens, loomtoken.Product)
+    if not seen:
+        return left_expression, next_tokens
+    right_expression, next_tokens = parse_product_expression(next_tokens)
+    if not right_expression:
+        return None, tokens
+    return loomast.ProductExpression(left_expression, right_expression), next_tokens
+
+def parse_difference_expression(tokens):
+    next_tokens = deepcopy(tokens)
+    left_expression, next_tokens = parse_complement_expression(next_tokens)
+    if not left_expression:
+        return None, tokens
+    seen, next_tokens = lookahead(next_tokens, loomtoken.Difference)
+    if not seen:
+        return left_expression, next_tokens
+    right_expression, next_tokens = parse_difference_expression(next_tokens)
+    if not right_expression:
+        return None, tokens
+    return loomast.DifferenceExpression(left_expression, right_expression), next_tokens
+
+def parse_complement_expression(tokens):
+    next_tokens = deepcopy(tokens)
+    seen, next_tokens = lookahead(next_tokens, loomtoken.Complement)
+    if seen:
+        return loomast.Complement(parse_complement_expression(next_tokens))
+    return parse_set_parenthesis_expression(next_tokens)
+
+def parse_set_parenthesis_expression(tokens):
+    next_tokens = deepcopy(tokens)
+    seen, next_tokens = expect(next_tokens, loomtoken.LeftParenthesis)
+    if seen:
+        expression, next_tokens = parse_set_expression(next_tokens)
+        seen, next_tokens = lookahead(next_tokens, loomtoken.RightParenthesis)
+        if not seen:
+            return None, tokens
+        return expression, next_tokens
+    set, next_tokens = parse_set(next_tokens)
+    if set:
+        return set, next_tokens
+    seen, next_tokens = expect(next_tokens, loomtoken.Symbol)
+    if seen:
+        return loomast.Symbol(seen[0].identifier)
+    return None, tokens
+
+def parse_set(tokens):
+    next_tokens = deepcopy(tokens)
+    seen, next_tokens = lookahead(next_tokens, loomtoken.LeftBrace)
+    if seen:
+        expressions, next_tokens = parse_expression_list(next_tokens)
+        if not expressions:
+            return None, tokens
+        seen, next_tokens = lookahead(next_tokens, loomtoken.RightBrace)
+        if not seen:
+            return None, tokens
+        return loomast.Set(expressions), next_tokens
+    seen, next_tokens = lookahead(next_tokens, loomtoken.EmptySet)
+    if not seen:
+        return None, tokens
+    return loomast.Set([]), next_tokens
+
+def parse_string_expression(tokens):
+    next_tokens = deepcopy(tokens)
+    return parse_concatenation_expression(next_tokens)
+
+def parse_concatenation_expression(tokens):
+    next_tokens = deepcopy(tokens)
+    left_expression, next_tokens = parse_string_parenthesis_expression(next_tokens)
+    if not left_expression:
+        return None, tokens
+    seen, next_tokens = lookahead(next_tokens, loomast.Concatenate)
+    if not seen:
+        return left_expression, next_tokens
+    right_expression, next_tokens = parse_string_parenthesis_expression(next_tokens)
+    if not right_expression:
+        return None, tokens
+    return loomast.Concatenation(left_expression, right_expression)
+
+def parse_string_parenthesis_expression(tokens):
+    next_tokens = deepcopy(tokens)
+    seen, next_tokens = lookahead(next_tokens, loomtoken.LeftParenthesis)
+    if seen:
+        expression, next_tokens = parse_string_expression(next_tokens)
+        if not expression:
+            return None, tokens
+        seen, next_tokens = lookahead(next_tokens, loomtoken.RightParenthesis)
+        if not seen:
+            return None, tokens
+        return expression, next_tokens
+    seen, next_tokens = lookahead(next_tokens, loomast.String)
+    if seen:
+        return loomast.String(seen[0].bits), next_tokens
+    seen, next_tokens = lookahead(next_tokens, loomast.Symbol)
+    if seen:
+        return loomast.Symbol(seen[0].identifier), next_tokens
+    return None, tokens
+
+def parse_expression_list(tokens):
+    next_tokens = deepcopy(tokens)
+    expressions = []
+    expression, tokens = parse_expression(next_tokens)
+    if not expression:
+        return None, tokens
+    expressions.append(expression)
+    seen, next_tokens = lookahead(next_tokens, loomtoken.Comma)
+    while seen:
+        expression, tokens = parse_expression(next_tokens)
+        if not expression:
+            return None, tokens
+        expressions.append(expression)
+        seen, next_tokens = lookahead(next_tokens, loomtoken.Comma)
+    return expressions, next_tokens
 
 def parse_newlines(tokens):
-    seen, tokens = lookahead(tokens, TokenType.NEWLINE)
+    next_tokens = deepcopy(tokens)
+    seen, next_tokens = lookahead(next_tokens, loomtoken.Newline)
     while seen:
-        seen, tokens = lookahead(tokens, TokenType.NEWLINE)
-    return tokens
+        seen, next_tokens = lookahead(next_tokens, loomtoken.Newline)
+    return next_tokens
