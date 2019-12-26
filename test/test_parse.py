@@ -2,7 +2,7 @@
 
 import loom
 from loom import loomast, loomtoken, loomparse
-from loomast import Program, AlphabetDefinition, LanguageDefinition, StringDefinition, String
+from loomast import *
 from loomparse import parse
 from loomtoken import tokenize
 import os
@@ -13,44 +13,32 @@ DATA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 class TestParse(unittest.TestCase):
 
     def test_empty_parse(self):
-        EXPECTED = Program([], [], [])
+        EXPECTED = Program([])
         FILE_PATH = os.path.join(DATA_PATH, 'empty_parse.lm')
-        with open(FILE_PATH) as source:
-            tokens = tokenize(source.read())
-            actual = parse(tokens)
-            self.assertEqual(actual, EXPECTED)
-
-    def test_alphabet_definition(self):
-        EXPECTED = Program([AlphabetDefinition('test', ['0', '1'])], [], [])
-        FILE_PATH = os.path.join(DATA_PATH, 'alphabet_definition_parse.lm')
-        with open(FILE_PATH) as source:
-            tokens = tokenize(source.read())
-            actual = parse(tokens)
-            self.assertEqual(actual, EXPECTED)
+        self.expect(EXPECTED, FILE_PATH)
 
     def test_language_definition(self):
-        EXPECTED = Program([], [LanguageDefinition('test', 'test')], [])
+        EXPECTED = Program([LanguageDefinition(Symbol('test'), Set([String([0, 1, 0, 1]), String([])]))])
         FILE_PATH = os.path.join(DATA_PATH, 'language_definition_parse.lm')
-        with open(FILE_PATH) as source:
-            tokens = tokenize(source.read())
-            actual = parse(tokens)
-            self.assertEqual(actual, EXPECTED)
+        self.expect(EXPECTED, FILE_PATH)
 
     def test_string_definition(self):
-        EXPECTED = Program([], [], [StringDefinition('test', String(['test']), 'test')])
+        EXPECTED = Program([StringDefinition(Symbol('test'), String([0, 1, 0, 1]), Symbol('test'))])
         FILE_PATH = os.path.join(DATA_PATH, 'string_definition_parse.lm')
-        with open(FILE_PATH) as source:
-            tokens = tokenize(source.read())
-            actual = parse(tokens)
-            self.assertEqual(actual, EXPECTED)
+        self.expect(EXPECTED, FILE_PATH)
 
     def test_program(self):
         EXPECTED = Program(                            \
-            [AlphabetDefinition('binary', ['0', '1'])],\
-            [LanguageDefinition('strings', 'binary')], \
-            [StringDefinition('zero', String(['0']), 'strings')])
+            [LanguageDefinition(Symbol('strings'), ProductExpression(Set([String([0]), String([1])]), Set([String([0]), String([1])]))), \
+            StringDefinition(Symbol('zero'), ConcatenateExpression(String([0]), String([0])), Symbol('strings'))])
         FILE_PATH = os.path.join(DATA_PATH, 'binary.lm')
-        with open(FILE_PATH) as source:
-            tokens = tokenize(source.read())
+        self.expect(EXPECTED, FILE_PATH)
+
+    def expect(self, expected, file_path):
+        with open(file_path) as source:
+            tokens = list(tokenize(source.read()))
             actual = parse(tokens)
-            self.assertEqual(actual, EXPECTED)
+            self.assertEqual(actual, expected)
+
+if __name__ == '__main__':
+    unittest.main()

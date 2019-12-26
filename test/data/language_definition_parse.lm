@@ -1,1 +1,1 @@
-let test = test*
+test := {0101, ε}
