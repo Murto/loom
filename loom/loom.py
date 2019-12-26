@@ -5,7 +5,7 @@ import sys
 
 from loomtoken import tokenize
 from loomparse import parse
-from loomast import ASTPrinter, TypeChecker
+from loomast import ASTStringifier, TypeChecker
 
 def parse_arguments():
     description = 'Loom is a programming language by Murray Steele'

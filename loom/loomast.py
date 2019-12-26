@@ -1,144 +1,269 @@
 #!/usr/bin/env python3
 
 import abc
+from collections import defaultdict
 import enum
 
 class AST(abc.ABC):
-    pass
-
-class Program:
     
-    def __init__(self, alphabet_definitions, language_definitions, string_definitions):
-        self._alphabet_definitions = list(alphabet_definitions)
-        self._language_definitions = list(language_definitions)
-        self._string_definitions = list(string_definitions)
-
-    def __eq__(self, other):
-        return self._alphabet_definitions == other._alphabet_definitions  \
-            and self._language_definitions == other._language_definitions \
-            and self._string_definitions == other._string_definitions
-
+    @abc.abstractmethod
     def accept(self, visitor):
-        visitor.visit(self)
+        pass
 
-class AlphabetDefinition(AST):
-
-    def __init__(self, symbol, symbols):
-        self._symbol = symbol
-        self._symbols = symbols
+class Program(AST):
+    
+    def __init__(self, statements):
+        self.statements = statements
 
     def __eq__(self, other):
-        return self._symbol == other._symbol \
-            and self._symbols == other._symbols
+        return self.statements == other.statements
 
     def accept(self, visitor):
         visitor.visit(self)
 
 class LanguageDefinition(AST):
 
-    def __init__(self, symbol, alphabet_symbol):
-        self._symbol = symbol
-        self._alphabet_symbol = alphabet_symbol
+    def __init__(self, symbol, expression):
+        self.symbol = symbol
+        self.expression = expression
 
     def __eq__(self, other):
-        return self._symbol == other._symbol \
-            and self._alphabet_symbol == other._alphabet_symbol
-
+        return self.symbol == other.symbol \
+            and self.expression == other.expression
+    
     def accept(self, visitor):
         visitor.visit(self)
 
 class StringDefinition(AST):
     
-    def __init__(self, symbol, string, language_symbol):
-        self._symbol = symbol
-        self._string = string
-        self._language_symbol = language_symbol
+    def __init__(self, symbol, string_expression, set_expression):
+        self.symbol = symbol
+        self.string_expression = string_expression
+        self.set_expression = set_expression
 
     def __eq__(self, other):
-        return self._symbol == other._symbol  \
-            and self._string == other._string \
-            and self._language_symbol == other._language_symbol
+        return self.symbol == other.symbol  \
+            and self.string_expression == other.string_expression \
+            and self.set_expression == other.set_expression
+
+    def accept(self, visitor):
+        visitor.visit(self)
+
+class UnionExpression(AST):
+    
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
+
+    def __eq__(self, other):
+        return self.left == other.left \
+            and self.right == other.right
+
+    def accept(self, visitor):
+        visitor.visit(self)
+
+class IntersectExpression(AST):
+    
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
+
+    def __eq__(self, other):
+        return self.left == other.left \
+            and self.right == other.right;
+
+    def accept(self, visitor):
+        visitor.visit(self)
+
+class ProductExpression(AST):
+    
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
+
+    def __eq__(self, other):
+        return self.left == other.left \
+            and self.right == other.right;
+
+    def accept(self, visitor):
+        visitor.visit(self)
+
+class DifferenceExpression(AST):
+    
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
+
+    def __eq__(self, other):
+        return self.left == other.left \
+            and self.right == other.right;
+
+    def accept(self, visitor):
+        visitor.visit(self)
+
+class ComplementExpression(AST):
+    
+    def __init__(self, expression):
+        self.expression = expression
+
+    def __eq__(self, other):
+        return self.expression == other.expression
+
+    def accept(self, visitor):
+        visitor.visit(self)
+
+class Set(AST):
+    
+    def __init__(self, expressions):
+        self.expressions = expressions
+
+    def __eq__(self, other):
+        return self.expressions == other.expressions
+
+    def accept(self, visitor):
+        visitor.visit(self)
+
+class Symbol(AST):
+
+    def __init__(self, identifier):
+        self.identifier = indentifier
+
+    def __eq__(self, other):
+        return self.identifier == other.identifier
+
+    def accept(self, visitor):
+        visitor.visit(self)
+
+class ConcatenationExpression(AST):
+
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
+
+    def __eq__(self, other):
+        return self.left == other.left \
+            and self.right == right
 
     def accept(self, visitor):
         visitor.visit(self)
 
 class String(AST):
 
-    def __init__(self, symbols):
-        self._symbols = symbols
+    def __init__(self, bits):
+        self.bits = bits
 
     def __eq__(self, other):
-        return self._symbols == other._symbols
+        return self.bits == other.bits
 
     def accept(self, visitor):
-        visitor.visit(self)
+        return visitor.visit(self)
 
-class ASTPrinter:
+class ASTStringifier:
 
     def visit(self, node):
         if type(node) == Program:
-            self.__visit_program(node)
-        elif type(node) == AlphabetDefinition:
-            self.__visit_alphabet_definition(node)
+            return self.visit_program(node)
         elif type(node) == LanguageDefinition:
-            self.__visit_language_definition(node)
+            return self.visit_language_definition(node)
         elif type(node) == StringDefinition:
-            self.__visit_string_definition(node)
+            return self.visit_string_definition(node)
+        elif type(node) == UnionExpression:
+            return self.visit_union_expression(node)
+        elif type(node) == IntersectExpression:
+            return self.visit_intersect_expression(node)
+        elif type(node) == ProductExpression:
+            return self.visit_product_expression(node)
+        elif type(node) == DifferenceExpression:
+            return self.visit_difference_expression(node)
+        elif type(node) == ComplementExpression:
+            return self.visit_complement_expression(node)
+        elif type(node) == ParenthesisExpression:
+            return self.visit_parenthesis_expression(node)
+        elif type(node) == Set:
+            return self.visit_set(node)
+        elif type(node) == Symbol:
+            return self.visit_symbol(node)
+        elif type(node) == ConcatenationExpression:
+            return self.visit_concatenation_expression(node)
         elif type(node) == String:
-            self.__visit_string(node)
+            return self.visit_string(node)
 
-    def __visit_program(self, program):
-        print('(PROGRAM : ', end='')
-        delim = ''
-        for alphabet_definition in program._alphabet_definitions:
-            print(delim, end='')
-            alphabet_definition.accept(self)
-            delim = ', '
-        for language_definition in program._language_definitions:
-            print(delim, end='')
-            language_definition.accept(self)
-            delim = ', '
-        for string_definition in program._string_definitions:
-            print(delim, end='')
-            string_definition.accept(self)
-            delim = ', '
-        print(')')
+    def visit_program(self, program):
+        return f('<PROGRAM : '
+                '{", ".join(s.accept(self) for s in program.statements)}>')
 
-    def __visit_alphabet_definition(self, alphabet_definition):
-        print('(ALPHABET-DEFINITION : ', end='')
-        print(alphabet_definition._symbol, end=', ')
-        print(alphabet_definition._symbols, end='')
-        print(')', end='')
+    def visit_language_definition(self, language_definition):
+        return f('<LANGUAGE-DEFINITION : '
+                '{language_definition.symbol.accept(self)}, '
+                '{language_definition.expression.accept(self)}>')
 
-    def __visit_language_definition(self, language_definition):
-        print('(LANGUAGE-DEFINITION : ', end='')
-        print(language_definition._symbol, end=', ')
-        print(language_definition._alphabet_symbol, end='*')
-        print(')', end='')
+    def visit_string_definition(self, string_definition):
+        return f('<STRING-DEFINITION : '
+                '{string_definition.symbol.accept(self)}, '
+                '{string_definition.string_expression.accept(self)}, '
+                '{string_definition.set_expression.accept(self)}>')
+ 
+    def visit_union_expression(self, union_expression):
+        return f('<UNION-EXPRESSION : '
+                '{union_expression.left.accept(self)}, '
+                '{union_expression.right.accept(self)}>')
 
-    def __visit_string_definition(self, string_definition):
-        print('(STRING-DEFINITION : ', end='')
-        print(string_definition._symbol, end=', ')
-        string_definition._string.accept(self)
-        print(', ', end='')
-        print(string_definition._language_symbol, end='*')
-        print(')', end='')
+    def visit_intersect_expression(self, intersect_expression):
+        return f('<INTERSECT-EXPRESSION : '
+                '{intersect_expression.left.accept(self)}, '
+                '{intersect_expression.right.accept(self)}>')
 
-    def __visit_string(self, string):
-        print('(STRING : ', end='')
-        delim = ''
-        for symbol in string._symbols:
-            print(delim, end='')
-            print(symbol, end='')
-        print(')', end='')
+    def visit_product_expression(self, product_expression):
+        return f('<PRODUCT-EXPRESSION : '
+                '{product_expression.left.accept(self)}, '
+                '{product_expression.right.accept(self)}>')
+
+    def visit_difference_expression(self, difference_expression):
+        return f('<DIFFERENCE-EXPRESSION : '
+                '{difference_expression.left.accept(self)}, '
+                '{difference_expression.right.accept(self)}>')
+
+    def visit_union_expression(self, complement_expression):
+        return f('<COMPLEMENT-EXPRESSION : '
+                '{complement_expression.expression.accept(self)}>')
+
+    def visit_parenthesis_expression(self, parenthesis_expression):
+        return f('<PARENTHESIS-EXPRESSION : '
+                '{parenthesis_expression.expression.accept(self)}>')
+
+    def visit_set(self, set):
+        return f('<SET : '
+                '{", ".join(e.accept(self) for e in set.expressions)}>')
+
+    def visit_symbol(self, symbol):
+        return f('<SYMBOL : '
+                '{symbol.accept(this)}>')
+    
+    def visit_concatenation_expression(self, concatenation_expression):
+        return f('<CONCATENATION-EXPRESSION : '
+                '{concatenation_expression.left.accept(self), '
+                '{concatenation_expression.right.accept(self)>')
+
+    def visit_string(self, string):
+        return f('<STRING : '
+                '{"".join(str(bit) for bit in string.bits)}>')
+
 
 class TypeChecker:
 
+    class Type(enum.Enum):
+        ALPHABET = enum.auto()
+        LANGUAGE = enum.auto()
+        STRING = enum.auto()
+        TOKEN = enum.auto()
+        
     def __init__(self):
-        self.__symbols = set(['0', '1'])
-        self.__alphabets = set()
-        self.__languages = set()
-        self.__strings = set()
+        self.__symbols = set()
+        self.__types = dict()
+        self.__symbols.add('0')
+        self.__symbols.add('1')
+        self.types['0'] = TypeChecker.Type.TOKEN
+        self.types['1'] = TypeChecker.Type.TOKEN
 
     def visit(self, node):
         if type(node) == Program:
@@ -153,47 +278,49 @@ class TypeChecker:
             self.__visit_string(node)
 
     def __visit_program(self, program):
-        for alphabet_definition in program._alphabet_definitions:
+        for alphabet_definition in program.alphabet_definitions:
             alphabet_definition.accept(self)
-        for language_definition in program._language_definitions:
+        for language_definition in program.language_definitions:
             language_definition.accept(self)
-        for string_definition in program._string_definitions:
+        for string_definition in program.string_definitions:
             string_definition.accept(self)
 
     def __visit_alphabet_definition(self, alphabet_definition):
-        for symbol in alphabet_definition._symbols:
+        for symbol in alphabet_definition.symbols:
             if symbol not in self.__symbols:
-                raise RuntimeError('Symbol not declared')
-        symbol = alphabet_definition._symbol
+                raise RuntimeError('Token not declared')
+            elif self.__types[symbol] != TypeChecker.Type.TOKEN:
+                raise RuntimeError('Expected token')
+        symbol = alphabet_definition.symbol
         if symbol in self.__symbols:
             raise RuntimeError('Symbol already declared')
         else:
             self.__symbols.add(symbol)
-            self.__alphabets.add(symbol)
+            self.__types[TypeChecker.Type.ALPHABET].add(symbol)
     
     def __visit_language_definition(self, language_definition):
-        symbol = language_definition._symbol
-        alphabet_symbol = language_definition._alphabet_symbol
+        symbol = language_definition.symbol
+        alphabet_symbol = language_definition.alphabet_symbol
         if symbol in self.__symbols:
             raise RuntimeError('Symbol already declared')
-        elif alphabet_symbol not in self.__alphabets:
+        elif alphabet_symbol not in self._alphabets:
             raise RuntimeError('Alphabet not declared')
         else:
             self.__symbols.add(symbol)
-            self.__languages.add(symbol)
+            self.languages.add(symbol)
 
     def __visit_string_definition(self, string_definition):
-        symbol = string_definition._symbol
-        language_symbol = string_definition._language_symbol
+        symbol = string_definition.symbol
+        language_symbol = string_definition.language_symbol
         if symbol in self.__symbols:
             raise RuntimeError('Symbol already declared')
-        elif language_symbol not in self.__languages:
+        elif language_symbol not in self._languages:
             raise RuntimeError('Language not declared')
         else:
             self.__symbols.add(symbol)
-            self.__strings.add(symbol)
+            self._strings.add(symbol)
 
     def __visit_string(self, string):
-        for symbol in string._symbols:
+        for symbol in string.symbols:
             if symbol not in self.__symbols:
                 raise RuntimeError('Symbol not declared')
