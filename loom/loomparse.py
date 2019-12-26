@@ -72,7 +72,7 @@ def parse_string_definition(tokens):
     seen, next_tokens = lookahead(next_tokens, loomtoken.Newline)
     if not seen:
         return None, tokens
-    return StringDefinition(symbol, string_expression, set_expression)
+    return loomast.StringDefinition(symbol, string_expression, set_expression), next_tokens
 
 def parse_set_expression(tokens):
     next_tokens = deepcopy(tokens)
@@ -134,7 +134,7 @@ def parse_complement_expression(tokens):
     next_tokens = deepcopy(tokens)
     seen, next_tokens = lookahead(next_tokens, loomtoken.Complement)
     if seen:
-        return loomast.Complement(parse_complement_expression(next_tokens))
+        return loomast.Complement(parse_complement_expression(next_tokens)), next_tokens
     return parse_set_parenthesis_expression(next_tokens)
 
 def parse_set_parenthesis_expression(tokens):
@@ -151,7 +151,7 @@ def parse_set_parenthesis_expression(tokens):
         return set, next_tokens
     seen, next_tokens = lookahead(next_tokens, loomtoken.Symbol)
     if seen:
-        return loomast.Symbol(seen[0].identifier)
+        return loomast.Symbol(seen[0].identifier), next_tokens
     return None, tokens
 
 def parse_set(tokens):
@@ -172,9 +172,9 @@ def parse_set(tokens):
 
 def parse_string_expression(tokens):
     next_tokens = deepcopy(tokens)
-    return parse_concatenation_expression(next_tokens)
+    return parse_concatenate_expression(next_tokens)
 
-def parse_concatenation_expression(tokens):
+def parse_concatenate_expression(tokens):
     next_tokens = deepcopy(tokens)
     left_expression, next_tokens = parse_string_parenthesis_expression(next_tokens)
     if not left_expression:
@@ -185,7 +185,7 @@ def parse_concatenation_expression(tokens):
     right_expression, next_tokens = parse_string_parenthesis_expression(next_tokens)
     if not right_expression:
         return None, tokens
-    return loomast.Concatenation(left_expression, right_expression)
+    return loomast.ConcatenateExpression(left_expression, right_expression), next_tokens
 
 def parse_string_parenthesis_expression(tokens):
     next_tokens = deepcopy(tokens)
