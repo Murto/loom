@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from copy import deepcopy
+import loomast
 import loomtoken
 from loomtoken import TokenType
 
@@ -13,20 +14,21 @@ def lookahead(tokens, *expected):
 def parse(tokens):
     next_tokens = deepcopy(tokens)
     statements, next_tokens = parse_statements(next_tokens)
+    if not statements:
+        statements = []
     next_tokens = parse_newlines(next_tokens)
     if next_tokens:
         raise RuntimeError(f'Unexpected token {next_tokens[0]}')
-    return Program(statements)
+    return loomast.Program(statements)
 
 def parse_statements(tokens):
     next_tokens = deepcopy(tokens)
-    statements = list()
+    statements = []
     statement, next_tokens = parse_statement(next_tokens)
     while statement:
         statements.append(statement)
         statement, next_tokens = parse_statement(next_tokens)
     return statements, next_tokens
-
 
 def parse_statement(tokens):
     next_tokens = deepcopy(tokens)
@@ -37,7 +39,6 @@ def parse_statement(tokens):
     if string_definition:
         return string_definition, next_tokens
     return None, tokens
-    
 
 def parse_language_definition(tokens):
     next_tokens = deepcopy(tokens)
@@ -51,7 +52,7 @@ def parse_language_definition(tokens):
     seen, next_tokens = lookahead(next_tokens, loomtoken.Newline)
     if not seen:
         return None, tokens
-    return LanguageDefinition(symbol, expression), next_tokens
+    return loomast.LanguageDefinition(symbol, expression), next_tokens
 
 def parse_string_definition(tokens):
     next_tokens = deepcopy(tokens)
@@ -138,7 +139,7 @@ def parse_complement_expression(tokens):
 
 def parse_set_parenthesis_expression(tokens):
     next_tokens = deepcopy(tokens)
-    seen, next_tokens = expect(next_tokens, loomtoken.LeftParenthesis)
+    seen, next_tokens = lookahead(next_tokens, loomtoken.LeftParenthesis)
     if seen:
         expression, next_tokens = parse_set_expression(next_tokens)
         seen, next_tokens = lookahead(next_tokens, loomtoken.RightParenthesis)
@@ -148,7 +149,7 @@ def parse_set_parenthesis_expression(tokens):
     set, next_tokens = parse_set(next_tokens)
     if set:
         return set, next_tokens
-    seen, next_tokens = expect(next_tokens, loomtoken.Symbol)
+    seen, next_tokens = lookahead(next_tokens, loomtoken.Symbol)
     if seen:
         return loomast.Symbol(seen[0].identifier)
     return None, tokens
@@ -157,7 +158,7 @@ def parse_set(tokens):
     next_tokens = deepcopy(tokens)
     seen, next_tokens = lookahead(next_tokens, loomtoken.LeftBrace)
     if seen:
-        expressions, next_tokens = parse_expression_list(next_tokens)
+        expressions, next_tokens = parse_string_expression_list(next_tokens)
         if not expressions:
             return None, tokens
         seen, next_tokens = lookahead(next_tokens, loomtoken.RightBrace)
@@ -178,7 +179,7 @@ def parse_concatenation_expression(tokens):
     left_expression, next_tokens = parse_string_parenthesis_expression(next_tokens)
     if not left_expression:
         return None, tokens
-    seen, next_tokens = lookahead(next_tokens, loomast.Concatenate)
+    seen, next_tokens = lookahead(next_tokens, loomtoken.Concatenate)
     if not seen:
         return left_expression, next_tokens
     right_expression, next_tokens = parse_string_parenthesis_expression(next_tokens)
@@ -197,24 +198,24 @@ def parse_string_parenthesis_expression(tokens):
         if not seen:
             return None, tokens
         return expression, next_tokens
-    seen, next_tokens = lookahead(next_tokens, loomast.String)
+    seen, next_tokens = lookahead(next_tokens, loomtoken.String)
     if seen:
         return loomast.String(seen[0].bits), next_tokens
-    seen, next_tokens = lookahead(next_tokens, loomast.Symbol)
+    seen, next_tokens = lookahead(next_tokens, loomtoken.Symbol)
     if seen:
         return loomast.Symbol(seen[0].identifier), next_tokens
     return None, tokens
 
-def parse_expression_list(tokens):
+def parse_string_expression_list(tokens):
     next_tokens = deepcopy(tokens)
     expressions = []
-    expression, tokens = parse_expression(next_tokens)
+    expression, next_tokens = parse_string_expression(next_tokens)
     if not expression:
         return None, tokens
     expressions.append(expression)
     seen, next_tokens = lookahead(next_tokens, loomtoken.Comma)
     while seen:
-        expression, tokens = parse_expression(next_tokens)
+        expression, next_tokens = parse_string_expression(next_tokens)
         if not expression:
             return None, tokens
         expressions.append(expression)
@@ -225,5 +226,5 @@ def parse_newlines(tokens):
     next_tokens = deepcopy(tokens)
     seen, next_tokens = lookahead(next_tokens, loomtoken.Newline)
     while seen:
-        seen, next_tokens = lookahead(next_tokens, loomtoken.Newline)
-    return next_tokens
+        seen, tokens = lookahead(next_tokens, loomtoken.Newline)
+    return tokens
