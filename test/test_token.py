@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from loom import loomtoken
-from loomtoken import TokenType, tokenize
+from loomtoken import TokenType, Symbol, Define, In, Union, Intersect, Product, Difference, Complement, LeftParenthesis, RightParenthesis, LeftBrace, RightBrace, EmptySet, Comma, String, tokenize
 import os
 import unittest
 
@@ -11,39 +11,53 @@ class TestToken(unittest.TestCase):
 
     def test_spaced_tokens(self):
         EXPECTED = [
-                (TokenType.LET, 'let'),
-                (TokenType.ASSIGN, '='),
-                (TokenType.LEFT_BRACE, '{'),
-                (TokenType.RIGHT_BRACE, '}'),
-                (TokenType.ASTERISK, '*'),
-                (TokenType.IN, 'in'),
-                (TokenType.COMMA, ','),
-                (TokenType.SYMBOL, 'symbol'),
-                (TokenType.NEWLINE, '\n')
+                Symbol('symbol'),
+                Define(),
+                In(),
+                Union(),
+                Intersect(),
+                Product(),
+                Difference(),
+                Complement(),
+                LeftParenthesis(),
+                RightParenthesis(),
+                LeftBrace(),
+                RightBrace(),
+                EmptySet(),
+                Comma(),
+                String(''),
+                String('101010')
                 ]
         FILE_PATH = os.path.join(DATA_PATH, 'spaced_tokens.lm')
-        with open(FILE_PATH) as source:
-            for token, expected in zip(tokenize(source.read()), EXPECTED):
-                actual = (token.type, token.value)
-                self.assertEqual(actual, expected)
+        self.expect(EXPECTED, FILE_PATH)
 
     def test_unspaced_tokens(self):
         EXPECTED = [
-                (TokenType.LET, 'let'),
-                (TokenType.ASSIGN, '='),
-                (TokenType.LEFT_BRACE, '{'),
-                (TokenType.RIGHT_BRACE, '}'),
-                (TokenType.ASTERISK, '*'),
-                (TokenType.IN, 'in'),
-                (TokenType.COMMA, ','),
-                (TokenType.SYMBOL, 'symbol'),
-                (TokenType.NEWLINE, '\n')
+                Symbol('symbol'),
+                Define(),
+                In(),
+                Union(),
+                Intersect(),
+                Product(),
+                Difference(),
+                Complement(),
+                LeftParenthesis(),
+                RightParenthesis(),
+                LeftBrace(),
+                RightBrace(),
+                EmptySet(),
+                Comma(),
+                String(''),
+                String('101010')
                 ]
         FILE_PATH = os.path.join(DATA_PATH, 'unspaced_tokens.lm')
-        with open(FILE_PATH) as source:
-            for token, expected in zip(tokenize(source.read()), EXPECTED):
-                actual = (token.type, token.value)
+        self.expect(EXPECTED, FILE_PATH)
+
+    def expect(self, expected, file_path):
+        with open(file_path) as source:
+            for actual, expected in zip(tokenize(source.read()), expected):
                 self.assertEqual(actual, expected)
+
 
 if __name__ == '__main__':
     unittest.main()
