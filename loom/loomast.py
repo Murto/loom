@@ -131,6 +131,9 @@ class Symbol(AST):
     def __eq__(self, other):
         return self.identifier == other.identifier
 
+    def __hash__(self):
+        return hash(self.identifier)
+
     def accept(self, visitor):
         return visitor.visit(self)
 
@@ -249,75 +252,127 @@ class ASTStringifier:
 class TypeChecker:
 
     class Type(enum.Enum):
-        ALPHABET = enum.auto()
         LANGUAGE = enum.auto()
-        STRING = enum.auto()
-        TOKEN = enum.auto()
+        STRING   = enum.auto()
         
     def __init__(self):
-        self.__symbols = set()
-        self.__types = dict()
-        self.__symbols.add('0')
-        self.__symbols.add('1')
-        self.types['0'] = TypeChecker.Type.TOKEN
-        self.types['1'] = TypeChecker.Type.TOKEN
+        self.symbols = set()
+        self.types = dict()
 
     def visit(self, node):
         if type(node) == Program:
-            self.__visit_program(node)
-        elif type(node) == AlphabetDefinition:
-            self.__visit_alphabet_definition(node)
+            return self.visit_program(node)
         elif type(node) == LanguageDefinition:
-            self.__visit_language_definition(node)
+            return self.visit_language_definition(node)
         elif type(node) == StringDefinition:
-            self.__visit_string_definition(node)
+            return self.visit_string_definition(node)
+        elif type(node) == UnionExpression:
+            return self.visit_union_expression(node)
+        elif type(node) == IntersectExpression:
+            return self.visit_intersect_expression(node)
+        elif type(node) == ProductExpression:
+            return self.visit_product_expression(node)
+        elif type(node) == DifferenceExpression:
+            return self.visit_difference_expression(node)
+        elif type(node) == ComplementExpression:
+            return self.visit_complement_expression(node)
+        elif type(node) == Set:
+            return self.visit_set(node)
+        elif type(node) == Symbol:
+            return self.visit_symbol(node)
+        elif type(node) == ConcatenateExpression:
+            return self.visit_concatenate_expression(node)
         elif type(node) == String:
-            self.__visit_string(node)
+            return self.visit_string(node)
+        raise RuntimeError('Unknown node type')
 
-    def __visit_program(self, program):
-        for alphabet_definition in program.alphabet_definitions:
-            alphabet_definition.accept(self)
-        for language_definition in program.language_definitions:
-            language_definition.accept(self)
-        for string_definition in program.string_definitions:
-            string_definition.accept(self)
+    def visit_program(self, program):
+        for statement in program.statements:
+            statement.accept(self)
 
-    def __visit_alphabet_definition(self, alphabet_definition):
-        for symbol in alphabet_definition.symbols:
-            if symbol not in self.__symbols:
-                raise RuntimeError('Token not declared')
-            elif self.__types[symbol] != TypeChecker.Type.TOKEN:
-                raise RuntimeError('Expected token')
-        symbol = alphabet_definition.symbol
-        if symbol in self.__symbols:
-            raise RuntimeError('Symbol already declared')
-        else:
-            self.__symbols.add(symbol)
-            self.__types[TypeChecker.Type.ALPHABET].add(symbol)
+    def visit_language_definition(self, language_definition):
+        if language_definition.symbol in self.symbols:
+            raise RuntimeError(f'Symbol "{language_definition.symbol.identifier}" defined twice')
+        self.symbols.add(language_definition.symbol)
+        self.types[language_definition.symbol] = TypeChecker.Type.LANGUAGE
+        expression_type = language_definition.expression.accept(self)
+        if expression_type != TypeChecker.Type.LANGUAGE:
+            raise RuntimeError(f'LANGUAGE type expected, got {expression_type.name}')
+            
+    def visit_string_definition(self, string_definition):
+        if string_definition.symbol in self.symbols:
+            raise RuntimeError(f'Symbol "{string_definition.symbol.identifier}" defined twice')
+        self.symbols.add(string_definition.symbol)
+        self.types[string_definition.symbol] = TypeChecker.Type.STRING
+        string_expression_type = string_definition.string_expression.accept(self)
+        if string_expression_type != TypeChecker.Type.STRING:
+            raise RuntimeError(f'STRING type expected, got {string_expression_type.name}')
+        set_expression_type = string_definition.set_expression.accept(self)
+        if set_expression_type != TypeChecker.Type.LANGUAGE:
+            raise RuntimeError(f'LANGUAGE type expected, got {set_expression_type.name}')
+
+    def visit_union_expression(self, union_expression):
+        left_type = union_expression.left.accept(self)
+        if left_type != TypeChecker.Type.LANGUAGE:
+            raise RuntimeError(f'LANGUAGE type expected, got {left_type.name}')
+        right_type = union_expression.right.accept(self)
+        if right_type != TypeChecker.Type.LANGUAGE:
+            raise RuntimeError(f'LANGUAGE type expected, got {right_type.name}')
+        return TypeChecker.Type.LANGUAGE
+
+    def visit_intersect_expression(self, intersect_expression):
+        left_type = intersect_expression.left.accept(self)
+        if left_type != TypeChecker.Type.LANGUAGE:
+            raise RuntimeError(f'LANGUAGE type expected, got {left_type.name}')
+        right_type = intersect_expression.right.accept(self)
+        if right_type != TypeChecker.Type.LANGUAGE:
+            raise RuntimeError(f'LANGUAGE type expected, got {right_type.name}')
+        return TypeChecker.Type.LANGUAGE
+
+    def visit_product_expression(self, product_expression):
+        left_type = product_expression.left.accept(self)
+        if left_type != TypeChecker.Type.LANGUAGE:
+            raise RuntimeError(f'LANGUAGE type expected, got {left_type.name}')
+        right_type = product_expression.right.accept(self)
+        if right_type != TypeChecker.Type.LANGUAGE:
+            raise RuntimeError(f'LANGUAGE type expected, got {right_type.name}')
+        return TypeChecker.Type.LANGUAGE
+        
+    def visit_difference_expression(self, difference_expression):
+        left_type = difference_expression.left.accept(self)
+        if left_type != TypeChecker.Type.LANGUAGE:
+            raise RuntimeError(f'LANGUAGE type expected, got {left_type.name}')
+        right_type = difference_expression.right.accept(self)
+        if right_type != TypeChecker.Type.LANGUAGE:
+            raise RuntimeError(f'LANGUAGE type expected, got {right_type.name}')
+        return TypeChecker.Type.LANGUAGE
     
-    def __visit_language_definition(self, language_definition):
-        symbol = language_definition.symbol
-        alphabet_symbol = language_definition.alphabet_symbol
-        if symbol in self.__symbols:
-            raise RuntimeError('Symbol already declared')
-        elif alphabet_symbol not in self._alphabets:
-            raise RuntimeError('Alphabet not declared')
-        else:
-            self.__symbols.add(symbol)
-            self.languages.add(symbol)
+    def visit_complement_expression(self, complement_expression):
+        expression_type = complement_expression.expression.accept(self)
+        if expression_type != TypeChecker.Type.LANGUAGE:
+            raise RuntimeError(f'LANGUAGE type expected, got {expression_type.name}')
+        return TypeChecker.Type.LANGUAGE
+    
+    def visit_set(self, set):
+        for expression in set.expressions:
+            expression_type = expression.accept(self)
+            if expression_type != TypeChecker.Type.STRING:
+                raise RuntimeError(f'STRING type expected, got {expression_type.name}')
+        return TypeChecker.Type.LANGUAGE
 
-    def __visit_string_definition(self, string_definition):
-        symbol = string_definition.symbol
-        language_symbol = string_definition.language_symbol
-        if symbol in self.__symbols:
-            raise RuntimeError('Symbol already declared')
-        elif language_symbol not in self._languages:
-            raise RuntimeError('Language not declared')
-        else:
-            self.__symbols.add(symbol)
-            self._strings.add(symbol)
+    def visit_symbol(self, symbol):
+        if symbol not in self.symbols:
+            raise RuntimeError(f'Symbol "{symbol.identifier}" not defined before use')
+        return self.types[symbol]
 
-    def __visit_string(self, string):
-        for symbol in string.symbols:
-            if symbol not in self.__symbols:
-                raise RuntimeError('Symbol not declared')
+    def visit_concatenate_expression(self, concatenate_expression):
+        left_type = concatenate_expression.left.accept(self)
+        if left_type != TypeChecker.Type.STRING:
+            raise RuntimeError(f'STRING type expected, got {left_type.name}')
+        right_type = concatenate_expression.right.accept(self)
+        if right_type != TypeChecker.Type.STRING:
+            raise RuntimeError(f'STRING type expected, got {right_type.name}')
+        return TypeChecker.Type.STRING
+
+    def visit_string(self, string):
+        return TypeChecker.Type.STRING
