@@ -14,6 +14,7 @@ class TokenType(enum.Enum):
     PRODUCT           = enum.auto()
     DIFFERENCE        = enum.auto()
     COMPLEMENT        = enum.auto()
+    CONCATENATE       = enum.auto()
     LEFT_PARENTHESIS  = enum.auto() 
     RIGHT_PARENTHESIS = enum.auto() 
     LEFT_BRACE        = enum.auto() 
@@ -36,17 +37,17 @@ class Newline(Token):
 
 class Symbol(Token):
 
-    def __init__(self, symbol):
-        self.symbol = symbol
+    def __init__(self, identifier):
+        self.identifier = identifier
 
     def __eq__(self, other):
         return type(other) == Symbol
 
     def __eq__(self, other):
-        return self.symbol == other.symbol
+        return self.idenifier == other.identifier
 
     def __repr__(self):
-        return f'<Symbol : {self.symbol}>'
+        return f'<Symbol : {self.identifier}>'
 
 class Define(Token):
 
@@ -104,6 +105,14 @@ class Complement(Token):
     def __repr__(self):
         return '<Complement>'
 
+class Concatenate(Token):
+    
+    def __eq__(self, other):
+        return type(other) == Concatenate
+
+    def __repr__(self):
+        return '<Concatenate>'
+
 class LeftParenthesis(Token):
 
     def __eq__(self, other):
@@ -156,18 +165,18 @@ class Comma(Token):
 class String(Token):
 
     def __init__(self, data):
-        self.string = list()
+        self.bits = list()
         if data == 'ε':
             return
         for c in data:
-            self.string.append(int(c))
+            self.bits.append(int(c))
     
     def __eq__(self, other):
-        return type(other) == String and self.string == other.string
+        return type(other) == String and self.bits == other.bits
 
     def __repr__(self):
-        if self.string:
-            return f'<String : {"".join(str(x) for x in self.string)}>'
+        if self.bits:
+            return f'<String : {"".join(str(x) for x in self.bits)}>'
         else:
             return '<String : ε>'
 
@@ -190,6 +199,8 @@ def make_token(type, value):
         return Difference()
     elif type == TokenType.COMPLEMENT:
         return Complement()
+    elif type == TokenType.CONCATENATE:
+        return Concatenate()
     elif type == TokenType.LEFT_PARENTHESIS:
         return LeftParenthesis()
     elif type == TokenType.RIGHT_PARENTHESIS:
@@ -218,6 +229,7 @@ def tokenize(source):
         re.compile('×') : TokenType.PRODUCT,
         re.compile('-') : TokenType.DIFFERENCE,
         re.compile('¬') : TokenType.COMPLEMENT,
+        re.compile('\\+') : TokenType.CONCATENATE,
         re.compile('\\(') : TokenType.LEFT_PARENTHESIS,
         re.compile('\\)') : TokenType.RIGHT_PARENTHESIS,
         re.compile('{') : TokenType.LEFT_BRACE,
