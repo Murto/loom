@@ -21,7 +21,9 @@ def main():
     arguments = parse_arguments()
     with open(arguments['source_file']) as source:
         tokens = list(tokenize(source.read()))
-        print(tokens)
+        tree = parse(tokens)
+        print(ASTStringifier().visit(tree))
+
 
 if __name__ == '__main__':
     main()
