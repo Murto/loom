@@ -134,7 +134,7 @@ class Symbol(AST):
     def accept(self, visitor):
         return visitor.visit(self)
 
-class ConcatenationExpression(AST):
+class ConcatenateExpression(AST):
 
     def __init__(self, left, right):
         self.left = left
@@ -142,7 +142,7 @@ class ConcatenationExpression(AST):
 
     def __eq__(self, other):
         return self.left == other.left \
-            and self.right == right
+            and self.right == other.right
 
     def accept(self, visitor):
         return visitor.visit(self)
@@ -181,8 +181,8 @@ class ASTStringifier:
             return self.visit_set(node)
         elif type(node) == Symbol:
             return self.visit_symbol(node)
-        elif type(node) == ConcatenationExpression:
-            return self.visit_concatenation_expression(node)
+        elif type(node) == ConcatenateExpression:
+            return self.visit_concatenate_expression(node)
         elif type(node) == String:
             return self.visit_string(node)
         raise RuntimeError('Unknown node type')
@@ -233,10 +233,10 @@ class ASTStringifier:
         return '(SYMBOL : ' \
                 f'{symbol.identifier})'
     
-    def visit_concatenation_expression(self, concatenation_expression):
+    def visit_concatenate_expression(self, concatenate_expression):
         return '(CONCATENATION-EXPRESSION : ' \
-                '{concatenation_expression.left.accept(self), ' \
-                '{concatenation_expression.right.accept(self))'
+                '{concatenate_expression.left.accept(self), ' \
+                '{concatenate_expression.right.accept(self))'
 
     def visit_string(self, string):
         if string.bits:
