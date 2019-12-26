@@ -60,6 +60,5 @@ class TestToken(unittest.TestCase):
             for actual, expected in zip(tokenize(source.read()), expected):
                 self.assertEqual(actual, expected)
 
-
 if __name__ == '__main__':
     unittest.main()
