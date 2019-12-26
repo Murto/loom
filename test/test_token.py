@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from loom import loomtoken
-from loomtoken import TokenType, Symbol, Define, In, Union, Intersect, Product, Difference, Complement, LeftParenthesis, RightParenthesis, LeftBrace, RightBrace, EmptySet, Comma, String, tokenize
+from loomtoken import TokenType, Symbol, Define, In, Union, Intersect, Product, Difference, Complement, Concatenate, LeftParenthesis, RightParenthesis, LeftBrace, RightBrace, EmptySet, Comma, String, tokenize
 import os
 import unittest
 
@@ -19,6 +19,7 @@ class TestToken(unittest.TestCase):
                 Product(),
                 Difference(),
                 Complement(),
+                Concatenate(),
                 LeftParenthesis(),
                 RightParenthesis(),
                 LeftBrace(),
@@ -41,6 +42,7 @@ class TestToken(unittest.TestCase):
                 Product(),
                 Difference(),
                 Complement(),
+                Concatenate(),
                 LeftParenthesis(),
                 RightParenthesis(),
                 LeftBrace(),
