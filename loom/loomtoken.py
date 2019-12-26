@@ -44,7 +44,7 @@ class Symbol(Token):
         return type(other) == Symbol
 
     def __eq__(self, other):
-        return self.idenifier == other.identifier
+        return self.identifier == other.identifier
 
     def __repr__(self):
         return f'<Symbol : {self.identifier}>'
