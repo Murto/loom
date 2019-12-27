@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from loom import loomast, loomparse, loomtoken
-from loomast import TypeChecker
+from loomast import typecheck_ast
 from loomtoken import tokenize
 from loomparse import parse
 import os
@@ -28,6 +28,6 @@ class TestTupecheck(unittest.TestCase):
             tokens = list(tokenize(source.read()))
             tree = parse(tokens)
             try:
-                TypeChecker().visit(tree)
+                typecheck_ast(tree)
             except RuntimeError:
                 self.fail('TypeChecker raised error unexpectedly')

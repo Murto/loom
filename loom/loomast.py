@@ -248,6 +248,8 @@ class ASTStringifier:
         else:
             return '(STRING : ε)'
 
+def print_ast(ast):
+    print(ASTStringifier().visit(ast))
 
 class TypeChecker:
 
@@ -376,3 +378,6 @@ class TypeChecker:
 
     def visit_string(self, string):
         return TypeChecker.Type.STRING
+
+def typecheck_ast(ast):
+    TypeChecker().visit(ast)

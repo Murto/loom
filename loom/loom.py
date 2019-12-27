@@ -5,7 +5,7 @@ import sys
 
 from loomtoken import tokenize
 from loomparse import parse
-from loomast import ASTStringifier, TypeChecker
+from loomast import print_ast, typecheck_ast
 
 def parse_arguments():
     description = 'Loom is a programming language by Murray Steele'
@@ -22,8 +22,8 @@ def main():
     with open(arguments['source_file']) as source:
         tokens = list(tokenize(source.read()))
         tree = parse(tokens)
-        TypeChecker().visit(tree)
-        print(ASTStringifier().visit(tree))
+        typecheck_ast(tree)
+        print_ast(tree)
 
 if __name__ == '__main__':
     main()
