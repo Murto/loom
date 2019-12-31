@@ -6,6 +6,7 @@ import sys
 from loomtoken import tokenize
 from loomparse import parse
 from loomast import print_ast, typecheck_ast
+from loomgen import generate_program
 
 def parse_arguments():
     description = 'Loom is a programming language by Murray Steele'
@@ -23,7 +24,7 @@ def main():
         tokens = list(tokenize(source.read()))
         tree = parse(tokens)
         typecheck_ast(tree)
-        print_ast(tree)
+        print(generate_program(tree))
 
 if __name__ == '__main__':
     main()
