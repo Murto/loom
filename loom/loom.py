@@ -15,6 +15,11 @@ def parse_arguments():
                         metavar='source_file',
                         type=str,
                         help='Loom source file')
+    parser.add_argument('-o',
+                        metavar='output',
+                        type=str,
+                        dest='output',
+                        help='Output python file')
     args = parser.parse_args()
     return vars(args)
 
@@ -24,7 +29,14 @@ def main():
         tokens = list(tokenize(source.read()))
         tree = parse(tokens)
         typecheck_ast(tree)
-        print(generate_program(tree))
+        program = generate_program(tree)
+        if arguments['output']:
+            with open(arguments['output'], 'w') as output:
+                output.write(program)
+        else:
+            print(program)
+
+
 
 if __name__ == '__main__':
     main()
