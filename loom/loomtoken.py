@@ -21,7 +21,8 @@ class TokenType(enum.Enum):
     RIGHT_BRACE       = enum.auto() 
     EMPTY_SET         = enum.auto() 
     COMMA             = enum.auto() 
-    STRING            = enum.auto() 
+    STRING            = enum.auto()
+    COMMENT           = enum.auto()
 
 
 class Token(abc.ABC):
@@ -239,6 +240,7 @@ def tokenize(source):
         re.compile('ε') : TokenType.STRING,
         re.compile('(1|0)+') : TokenType.STRING,
         re.compile('[a-zA-Z_]+') : TokenType.SYMBOL,
+        re.compile('!.*\n') : TokenType.COMMENT
     }
     line = 1
     column = 1
@@ -250,14 +252,16 @@ def tokenize(source):
             for pattern, type in type_map.items():
                 result = pattern.match(source)
                 if result:
+                    found = True
                     if type == TokenType.NEWLINE:
                         line += 1
                         column = 1;
                     value = result.group()
                     column += len(value)
                     source = source[len(value):]
+                    if type == TokenType.COMMENT:
+                        break
                     yield make_token(type, value)
-                    found = True
                     break
             if not found:
                 raise RuntimeError(f'Unknown token at line {line} column {column}: {source[:10]}')
