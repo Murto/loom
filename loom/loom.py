@@ -15,6 +15,10 @@ def parse_arguments():
                         metavar='source_file',
                         type=str,
                         help='Loom source file')
+    parser.add_argument('--ast',
+                        action='store_true',
+                        default=False,
+                        help='Print string representation of abstract syntax tree')
     parser.add_argument('-o',
                         metavar='output',
                         type=str,
@@ -28,13 +32,16 @@ def main():
     with open(arguments['source_file']) as source:
         tokens = list(tokenize(source.read()))
         tree = parse(tokens)
-        typecheck_ast(tree)
-        program = generate_program(tree)
-        if arguments['output']:
-            with open(arguments['output'], 'w') as output:
-                output.write(program)
+        if arguments['ast']:
+            print_ast(tree)
         else:
-            print(program)
+            typecheck_ast(tree)
+            program = generate_program(tree)
+            if arguments['output']:
+                with open(arguments['output'], 'w') as output:
+                    output.write(program)
+            else:
+                print(program)
 
 
 
