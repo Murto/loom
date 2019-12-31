@@ -238,8 +238,8 @@ class ASTStringifier:
     
     def visit_concatenate_expression(self, concatenate_expression):
         return '(CONCATENATION-EXPRESSION : ' \
-                '{concatenate_expression.left.accept(self), ' \
-                '{concatenate_expression.right.accept(self))'
+                f'{concatenate_expression.left.accept(self)}, ' \
+                f'{concatenate_expression.right.accept(self)})'
 
     def visit_string(self, string):
         if string.bits:
