@@ -13,22 +13,26 @@ def lookahead(tokens, *expected):
 
 def parse(tokens):
     next_tokens = deepcopy(tokens)
-    statements, next_tokens = parse_statements(next_tokens)
-    if not statements:
-        statements = []
-    next_tokens = parse_newlines(next_tokens)
+    _, next_tokens = parse_newlines(next_tokens)
+    statements = []
+    statement, next_tokens = parse_statement(next_tokens)
+    newlines, next_tokens = parse_newlines(next_tokens)
+    while statement and newlines:
+        statements.append(statement)
+        statement, next_tokens = parse_statement(next_tokens)
+        newlines, next_tokens = parse_newlines(next_tokens)
     if next_tokens:
         raise RuntimeError(f'Unexpected token {next_tokens[0]}')
     return loomast.Program(statements)
 
-def parse_statements(tokens):
+def parse_newlines(tokens):
     next_tokens = deepcopy(tokens)
-    statements = []
-    statement, next_tokens = parse_statement(next_tokens)
-    while statement:
-        statements.append(statement)
-        statement, next_tokens = parse_statement(next_tokens)
-    return statements, next_tokens
+    newlines = []
+    seen, next_tokens = lookahead(next_tokens, loomtoken.Newline)
+    while seen:
+        newlines += seen
+        seen, next_tokens = lookahead(next_tokens, loomtoken.Newline)
+    return newlines, next_tokens
 
 def parse_statement(tokens):
     next_tokens = deepcopy(tokens)
@@ -49,9 +53,6 @@ def parse_language_definition(tokens):
     expression, next_tokens = parse_set_expression(next_tokens)
     if not expression:
         return None, tokens
-    seen, next_tokens = lookahead(next_tokens, loomtoken.Newline)
-    if not seen:
-        return None, tokens
     return loomast.LanguageDefinition(symbol, expression), next_tokens
 
 def parse_string_definition(tokens):
@@ -68,9 +69,6 @@ def parse_string_definition(tokens):
         return None, tokens
     set_expression, next_tokens = parse_set_expression(next_tokens)
     if not set_expression:
-        return None, tokens
-    seen, next_tokens = lookahead(next_tokens, loomtoken.Newline)
-    if not seen:
         return None, tokens
     return loomast.StringDefinition(symbol, string_expression, set_expression), next_tokens
 
@@ -221,10 +219,3 @@ def parse_string_expression_list(tokens):
         expressions.append(expression)
         seen, next_tokens = lookahead(next_tokens, loomtoken.Comma)
     return expressions, next_tokens
-
-def parse_newlines(tokens):
-    next_tokens = deepcopy(tokens)
-    seen, next_tokens = lookahead(next_tokens, loomtoken.Newline)
-    while seen:
-        seen, tokens = lookahead(next_tokens, loomtoken.Newline)
-    return tokens
