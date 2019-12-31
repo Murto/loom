@@ -17,10 +17,10 @@ def parse(tokens):
     statements = []
     statement, next_tokens = parse_statement(next_tokens)
     newlines, next_tokens = parse_newlines(next_tokens)
-    while statement and newlines:
+    while statement:
         statements.append(statement)
         statement, next_tokens = parse_statement(next_tokens)
-        newlines, next_tokens = parse_newlines(next_tokens)
+        _, next_tokens = parse_newlines(next_tokens)
     if next_tokens:
         raise RuntimeError(f'Unexpected token {next_tokens[0]}')
     return loomast.Program(statements)
@@ -53,6 +53,9 @@ def parse_language_definition(tokens):
     expression, next_tokens = parse_set_expression(next_tokens)
     if not expression:
         return None, tokens
+    seen, next_tokens = lookahead(next_tokens, loomtoken.Newline)
+    if not seen:
+        return None, tokens
     return loomast.LanguageDefinition(symbol, expression), next_tokens
 
 def parse_string_definition(tokens):
@@ -69,6 +72,9 @@ def parse_string_definition(tokens):
         return None, tokens
     set_expression, next_tokens = parse_set_expression(next_tokens)
     if not set_expression:
+        return None, tokens
+    seen, next_tokens = lookahead(next_tokens, loomtoken.Newline)
+    if not seen:
         return None, tokens
     return loomast.StringDefinition(symbol, string_expression, set_expression), next_tokens
 
@@ -180,7 +186,7 @@ def parse_concatenate_expression(tokens):
     seen, next_tokens = lookahead(next_tokens, loomtoken.Concatenate)
     if not seen:
         return left_expression, next_tokens
-    right_expression, next_tokens = parse_string_parenthesis_expression(next_tokens)
+    right_expression, next_tokens = parse_concatenate_expression(next_tokens)
     if not right_expression:
         return None, tokens
     return loomast.ConcatenateExpression(left_expression, right_expression), next_tokens
