@@ -42,6 +42,9 @@ def parse_statement(tokens):
     string_definition, next_tokens = parse_string_definition(next_tokens)
     if string_definition:
         return string_definition, next_tokens
+    exclaim_statement, next_tokens = parse_exclaim_statement(next_tokens)
+    if exclaim_statement:
+        return exclaim_statement, next_tokens
     return None, tokens
 
 def parse_language_definition(tokens):
@@ -77,6 +80,16 @@ def parse_string_definition(tokens):
     if not seen:
         return None, tokens
     return loomast.StringDefinition(symbol, string_expression, set_expression), next_tokens
+
+def parse_exclaim_statement(tokens):
+    next_tokens = deepcopy(tokens)
+    expression, next_tokens = parse_expression(next_tokens)
+    if not expression:
+        return None, next_tokens
+    seen, next_tokens = lookahead(next_tokens, loomtoken.Exclamation)
+    if seen:
+        return loomast.ExclaimStatement(expression), next_tokens
+    return None, tokens
 
 def parse_set_expression(tokens):
     next_tokens = deepcopy(tokens)
@@ -225,3 +238,13 @@ def parse_string_expression_list(tokens):
         expressions.append(expression)
         seen, next_tokens = lookahead(next_tokens, loomtoken.Comma)
     return expressions, next_tokens
+
+def parse_expression(tokens):
+    next_tokens = deepcopy(tokens)
+    set_expression, next_tokens = parse_set_expression(next_tokens)
+    if set_expression:
+        return set_expression, next_tokens
+    string_expression, next_tokens = parse_string_expression(next_tokens)
+    if string_expression:
+        return string_expression, next_tokens
+    return None, tokens

@@ -49,6 +49,17 @@ class StringDefinition(AST):
     def accept(self, visitor):
         return visitor.visit(self)
 
+class ExclaimStatement(AST):
+
+    def __init__(self, expression):
+        self.expression = expression
+
+    def __eq__(self, other):
+        return self.expression == other.expression
+
+    def accept(self, visitor):
+        return visitor.visit(self)
+
 class UnionExpression(AST):
     
     def __init__(self, left, right):
@@ -170,6 +181,8 @@ class ASTStringifier:
             return self.visit_language_definition(node)
         elif type(node) == StringDefinition:
             return self.visit_string_definition(node)
+        elif type(node) == ExclaimStatement:
+            return self.visit_exclaim_statement(node)
         elif type(node) == UnionExpression:
             return self.visit_union_expression(node)
         elif type(node) == IntersectExpression:
@@ -204,6 +217,10 @@ class ASTStringifier:
                 f'{string_definition.string_expression.accept(self)}, ' \
                 f'{string_definition.set_expression.accept(self)})'
  
+    def visit_exclaim_statement(self, exclaim_statement):
+        return '(EXCLAIM-STATEMENT : ' \
+                f'{exclaim_statement.expression.accept(self)})'
+
     def visit_union_expression(self, union_expression):
         return '(UNION-EXPRESSION : ' \
                 f'{union_expression.left.accept(self)}, ' \
@@ -244,7 +261,7 @@ class ASTStringifier:
     def visit_string(self, string):
         if string.bits:
             return '(STRING : ' \
-                    f'{"".join(str(bit) for bit in string.bits)})'
+                    f'{string.bits if string.bits else "ε"})'
         else:
             return '(STRING : ε)'
 
@@ -268,6 +285,8 @@ class TypeChecker:
             return self.visit_language_definition(node)
         elif type(node) == StringDefinition:
             return self.visit_string_definition(node)
+        elif type(node) == ExclaimStatement:
+            return self.visit_exclaim_statement(node)
         elif type(node) == UnionExpression:
             return self.visit_union_expression(node)
         elif type(node) == IntersectExpression:
@@ -312,6 +331,9 @@ class TypeChecker:
         set_expression_type = string_definition.set_expression.accept(self)
         if set_expression_type != TypeChecker.Type.LANGUAGE:
             raise RuntimeError(f'LANGUAGE type expected, got {set_expression_type.name}')
+
+    def visit_exclaim_statement(self, exclaim_statement):
+        exclaim_statement.expression.accept(self)
 
     def visit_union_expression(self, union_expression):
         left_type = union_expression.left.accept(self)

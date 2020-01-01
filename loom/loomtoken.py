@@ -8,7 +8,8 @@ class TokenType(enum.Enum):
     NEWLINE           = enum.auto() 
     SYMBOL            = enum.auto() 
     DEFINE            = enum.auto()
-    IN                = enum.auto() 
+    IN                = enum.auto()
+    EXCLAMATION       = enum.auto()
     UNION             = enum.auto()
     INTERSECT         = enum.auto()
     PRODUCT           = enum.auto()
@@ -166,20 +167,27 @@ class Comma(Token):
 class String(Token):
 
     def __init__(self, data):
-        self.bits = list()
         if data == 'ε':
-            return
-        for c in data:
-            self.bits.append(int(c))
+            self.bits = ''
+        else:
+            self.bits = data
     
     def __eq__(self, other):
         return type(other) == String and self.bits == other.bits
 
     def __repr__(self):
         if self.bits:
-            return f'<String : {"".join(str(x) for x in self.bits)}>'
+            return f'<String : {self.bits}>'
         else:
             return '<String : ε>'
+
+class Exclamation(Token):
+
+    def __eq__(self, other):
+        return type(other) == Exclamation
+
+    def __repr__(self):
+        return '<Exclamation>'
 
 def make_token(type, value):
     if type == TokenType.NEWLINE:
@@ -190,6 +198,8 @@ def make_token(type, value):
         return Define()
     elif type == TokenType.IN:
         return In()
+    elif type == TokenType.EXCLAMATION:
+        return Exclamation()
     elif type == TokenType.UNION:
         return Union()
     elif type == TokenType.INTERSECT:
@@ -225,6 +235,7 @@ def tokenize(source):
         re.compile('\n') : TokenType.NEWLINE,
         re.compile(':=') : TokenType.DEFINE,
         re.compile('∈') : TokenType.IN,
+        re.compile('!') : TokenType.EXCLAMATION,
         re.compile('∪') : TokenType.UNION,
         re.compile('∩') : TokenType.INTERSECT,
         re.compile('×') : TokenType.PRODUCT,
@@ -240,7 +251,7 @@ def tokenize(source):
         re.compile('ε') : TokenType.STRING,
         re.compile('(1|0)+') : TokenType.STRING,
         re.compile('[a-zA-Z_]+') : TokenType.SYMBOL,
-        re.compile('?.*\n') : TokenType.COMMENT
+        re.compile('\\?.*\n') : TokenType.COMMENT
     }
     line = 1
     column = 1

@@ -19,6 +19,8 @@ class ProgramGenerator:
             return self.visit_language_definition(node)
         elif type(node) == StringDefinition:
             return self.visit_string_definition(node)
+        elif type(node) == ExclaimStatement:
+            return self.visit_exclaim_statement(node)
         elif type(node) == UnionExpression:
             return self.visit_union_expression(node)
         elif type(node) == IntersectExpression:
@@ -53,6 +55,10 @@ class ProgramGenerator:
         self.environment[string_definition.symbol.identifier] = variable
         predicate = string_definition.set_expression.accept(self)
         self.program.append(f'assert {predicate}({variable}), "String does not satisfy predicate"')
+
+    def visit_exclaim_statement(self, exclaim_statement):
+        local = exclaim_statement.expression.accept(self)
+        self.program.append(f'print({local})')
 
     def visit_union_expression(self, union_expression):
         left_argument = union_expression.left.accept(self)
@@ -108,7 +114,7 @@ class ProgramGenerator:
 
     def visit_string(self, string):
         variable = self.next_string()
-        self.program.append(f'{variable} = [{",".join([str(bit) for bit in string.bits])}]')
+        self.program.append(f'{variable} = "{string.bits}"')
         return variable
 
     def next_string(self):
