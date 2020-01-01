@@ -12,3 +12,5 @@ m := 01101101 ∈ ascii
 ? Concatenate ascii characters to make binary string
 ? representing "Loom"
 Loom := L + o + o + m ∈ ascii × ascii × ascii × ascii
+
+Loom !
