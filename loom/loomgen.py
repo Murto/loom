@@ -51,6 +51,8 @@ class ProgramGenerator:
     def visit_string_definition(self, string_definition):
         variable = string_definition.string_expression.accept(self)
         self.environment[string_definition.symbol.identifier] = variable
+        predicate = string_definition.set_expression.accept(self)
+        self.program.append(f'assert {predicate}({variable}), "String does not satisfy predicate"')
 
     def visit_union_expression(self, union_expression):
         left_argument = union_expression.left.accept(self)
