@@ -240,7 +240,7 @@ def tokenize(source):
         re.compile('ε') : TokenType.STRING,
         re.compile('(1|0)+') : TokenType.STRING,
         re.compile('[a-zA-Z_]+') : TokenType.SYMBOL,
-        re.compile('!.*\n') : TokenType.COMMENT
+        re.compile('?.*\n') : TokenType.COMMENT
     }
     line = 1
     column = 1
