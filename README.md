@@ -15,7 +15,8 @@ bits := {0, 1}
 # Define ascii character language
 ascii := bits × bits × bits × bits × bits × bits × bits × bits
 
-# Get ascii input
+# Get binary input from user conforming to the set of
+# sequences of ascii characters
 input ∈ ascii* ?
 
 # Define L, o, and m ascii characters
@@ -29,9 +30,8 @@ Loom := L + o + o + m ∈ ascii × ascii × ascii × ascii
 
 colon := 00111010 ∈ ascii
 
-# Print loom in binary
+# Print "loom:<input>" in binary
 Loom + colon + input !
-
 ```
 
 ## Continuous Integration
