@@ -60,6 +60,19 @@ class ExclaimStatement(AST):
     def accept(self, visitor):
         return visitor.visit(self)
 
+class InquireStatement(AST):
+
+    def __init__(self, symbol, expression):
+        self.symbol = symbol
+        self.expression = expression
+
+    def __eq__(self, other):
+        return self.symbol == other.symbol \
+            and self.expression == other.expression
+
+    def accept(self, visitor):
+        return visitor.visit(self)
+
 class UnionExpression(AST):
     
     def __init__(self, left, right):
@@ -183,6 +196,8 @@ class ASTStringifier:
             return self.visit_string_definition(node)
         elif type(node) == ExclaimStatement:
             return self.visit_exclaim_statement(node)
+        elif type(node) == InquireStatement:
+            return self.visit_inquire_statement(node)
         elif type(node) == UnionExpression:
             return self.visit_union_expression(node)
         elif type(node) == IntersectExpression:
@@ -220,6 +235,11 @@ class ASTStringifier:
     def visit_exclaim_statement(self, exclaim_statement):
         return '(EXCLAIM-STATEMENT : ' \
                 f'{exclaim_statement.expression.accept(self)})'
+
+    def visit_inquire_statement(self, inquire_statement):
+        return '(INQUIRE-STATEMENT : ' \
+                f'{inquire_statement.symbol.accept(self)}, ' \
+                f'{inquire_statement.expression.accept(self)})'
 
     def visit_union_expression(self, union_expression):
         return '(UNION-EXPRESSION : ' \
@@ -287,6 +307,8 @@ class TypeChecker:
             return self.visit_string_definition(node)
         elif type(node) == ExclaimStatement:
             return self.visit_exclaim_statement(node)
+        elif type(node) == InquireStatement:
+            return self.visit_inquire_statement(node)
         elif type(node) == UnionExpression:
             return self.visit_union_expression(node)
         elif type(node) == IntersectExpression:
@@ -334,6 +356,15 @@ class TypeChecker:
 
     def visit_exclaim_statement(self, exclaim_statement):
         exclaim_statement.expression.accept(self)
+
+    def visit_inquire_statement(self, inquire_statement):
+        if inquire_statement.symbol in self.symbols:
+            raise RuntimeError(f'Symbol "{inquire_statement.symbol.indentifier}" defined twice')
+        self.symbols.add(inquire_statement.symbol)
+        self.types[inquire_statement.symbol] = TypeChecker.Type.STRING
+        expression_type = inquire_statement.expression.accept(self)
+        if expression_type != TypeChecker.Type.LANGUAGE:
+            raise RuntimeError(f'LANGUAGE type expected, got {expression_type.name}')
 
     def visit_union_expression(self, union_expression):
         left_type = union_expression.left.accept(self)

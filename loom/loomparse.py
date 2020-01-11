@@ -22,6 +22,7 @@ def parse(tokens):
         statement, next_tokens = parse_statement(next_tokens)
         _, next_tokens = parse_newlines(next_tokens)
     if next_tokens:
+        print(next_tokens)
         raise RuntimeError(f'Unexpected token {next_tokens[0]}')
     return loomast.Program(statements)
 
@@ -45,6 +46,9 @@ def parse_statement(tokens):
     exclaim_statement, next_tokens = parse_exclaim_statement(next_tokens)
     if exclaim_statement:
         return exclaim_statement, next_tokens
+    inquire_statement, next_tokens = parse_inquire_statement(next_tokens)
+    if inquire_statement:
+        return inquire_statement, next_tokens
     return None, tokens
 
 def parse_language_definition(tokens):
@@ -83,13 +87,27 @@ def parse_string_definition(tokens):
 
 def parse_exclaim_statement(tokens):
     next_tokens = deepcopy(tokens)
-    expression, next_tokens = parse_expression(next_tokens)
+    expression, next_tokens = parse_string_expression(next_tokens)
     if not expression:
         return None, next_tokens
     seen, next_tokens = lookahead(next_tokens, loomtoken.Exclamation)
     if seen:
         return loomast.ExclaimStatement(expression), next_tokens
     return None, tokens
+
+def parse_inquire_statement(tokens):
+    next_tokens = deepcopy(tokens)
+    seen, next_tokens = lookahead(next_tokens, loomtoken.Symbol, loomtoken.In)
+    if not seen:
+        return None, tokens
+    symbol = loomast.Symbol(seen[0].identifier)
+    set_expression, next_tokens = parse_set_expression(next_tokens)
+    if not set_expression:
+        return None, tokens
+    seen, next_tokens = lookahead(next_tokens, loomtoken.Inquiry, loomtoken.Newline)
+    if not seen:
+        return None, tokens
+    return loomast.InquireStatement(symbol, set_expression), next_tokens
 
 def parse_set_expression(tokens):
     next_tokens = deepcopy(tokens)

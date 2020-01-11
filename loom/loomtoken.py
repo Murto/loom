@@ -10,6 +10,7 @@ class TokenType(enum.Enum):
     DEFINE            = enum.auto()
     IN                = enum.auto()
     EXCLAMATION       = enum.auto()
+    INQUIRY           = enum.auto()
     UNION             = enum.auto()
     INTERSECT         = enum.auto()
     PRODUCT           = enum.auto()
@@ -139,7 +140,6 @@ class LeftBrace(Token):
     def __repr__(self):
         return '<Left Brace>'
 
-
 class RightBrace(Token):
 
     def __eq__(self, other):
@@ -189,6 +189,14 @@ class Exclamation(Token):
     def __repr__(self):
         return '<Exclamation>'
 
+class Inquiry(Token):
+
+    def __eq__(self, other):
+        return type(other) == Inquiry
+
+    def __repr__(self):
+        return '<Inquiry>'
+
 def make_token(type, value):
     if type == TokenType.NEWLINE:
         return Newline()
@@ -200,6 +208,8 @@ def make_token(type, value):
         return In()
     elif type == TokenType.EXCLAMATION:
         return Exclamation()
+    elif type == TokenType.INQUIRY:
+        return Inquiry()
     elif type == TokenType.UNION:
         return Union()
     elif type == TokenType.INTERSECT:
@@ -236,6 +246,7 @@ def tokenize(source):
         re.compile(':=') : TokenType.DEFINE,
         re.compile('∈') : TokenType.IN,
         re.compile('!') : TokenType.EXCLAMATION,
+        re.compile('\\?') : TokenType.INQUIRY,
         re.compile('∪') : TokenType.UNION,
         re.compile('∩') : TokenType.INTERSECT,
         re.compile('×') : TokenType.PRODUCT,
@@ -251,7 +262,7 @@ def tokenize(source):
         re.compile('ε') : TokenType.STRING,
         re.compile('(1|0)+') : TokenType.STRING,
         re.compile('[a-zA-Z_]+') : TokenType.SYMBOL,
-        re.compile('\\?.*\n') : TokenType.COMMENT
+        re.compile('#.*\n') : TokenType.COMMENT
     }
     line = 1
     column = 1
