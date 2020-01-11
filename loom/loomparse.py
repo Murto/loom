@@ -22,7 +22,6 @@ def parse(tokens):
         statement, next_tokens = parse_statement(next_tokens)
         _, next_tokens = parse_newlines(next_tokens)
     if next_tokens:
-        print(next_tokens)
         raise RuntimeError(f'Unexpected token {next_tokens[0]}')
     return loomast.Program(statements)
 
