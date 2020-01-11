@@ -33,6 +33,8 @@ class ProgramGenerator:
             return self.visit_difference_expression(node)
         elif type(node) == ComplementExpression:
             return self.visit_complement_expression(node)
+        elif type(node) == KleeneExpression:
+            return self.visit_kleene_expression(node)
         elif type(node) == Set:
             return self.visit_set(node)
         elif type(node) == Symbol:
@@ -102,6 +104,12 @@ class ProgramGenerator:
         argument = complement_expression.expression.accept(self)
         variable = self.next_set()
         self.program.append(f'{variable} = lambda item: not {argument}(item)')
+        return variable
+
+    def visit_kleene_expression(self, kleene_expression):
+        argument = kleene_expression.expression.accept(self)
+        variable = self.next_set()
+        self.program.append(f'{variable} = lambda item: True if len(item) == 0 else any({argument}(item[:i]) and {variable}(item[i:]) for i in range(len(item) + 1))')
         return variable
 
     def visit_set(self, set):
