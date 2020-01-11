@@ -6,7 +6,7 @@ formal language theory.
 
 ## Example
 
-The following example is available under `example`:
+The following example is available under `examples`:
 
 ```
 # Define language of 0 and 1 (binary string alphabet)
