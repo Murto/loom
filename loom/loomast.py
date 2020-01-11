@@ -136,6 +136,17 @@ class ComplementExpression(AST):
     def accept(self, visitor):
         return visitor.visit(self)
 
+class KleeneExpression(AST):
+
+    def __init__(self, expression):
+        self.expression = expression
+
+    def __eq__(self, other):
+        return self.expression == other.expression
+
+    def accept(self, visitor):
+        return visitor.visit(self)
+
 class Set(AST):
     
     def __init__(self, expressions):
@@ -208,6 +219,8 @@ class ASTStringifier:
             return self.visit_difference_expression(node)
         elif type(node) == ComplementExpression:
             return self.visit_complement_expression(node)
+        elif type(node) == KleeneExpression:
+            return self.visit_kleene_expression(node)
         elif type(node) == Set:
             return self.visit_set(node)
         elif type(node) == Symbol:
@@ -261,9 +274,13 @@ class ASTStringifier:
                 f'{difference_expression.left.accept(self)}, ' \
                 f'{difference_expression.right.accept(self)})'
 
-    def visit_union_expression(self, complement_expression):
+    def visit_complement_expression(self, complement_expression):
         return '(COMPLEMENT-EXPRESSION : ' \
                 f'{complement_expression.expression.accept(self)})'
+
+    def visit_kleene_expression(self, kleene_expression):
+        return '(KLEENE-EXPRESSION : ' \
+                f'{kleene_expression.expression.accept(self)})'
 
     def visit_set(self, set):
         return '(SET : ' \
@@ -319,6 +336,8 @@ class TypeChecker:
             return self.visit_difference_expression(node)
         elif type(node) == ComplementExpression:
             return self.visit_complement_expression(node)
+        elif type(node) == KleeneExpression:
+            return self.visit_kleene_expression(node)
         elif type(node) == Set:
             return self.visit_set(node)
         elif type(node) == Symbol:
@@ -408,6 +427,12 @@ class TypeChecker:
             raise RuntimeError(f'LANGUAGE type expected, got {expression_type.name}')
         return TypeChecker.Type.LANGUAGE
     
+    def visit_kleene_expression(self, kleene_expression):
+        expression_type = kleene_expression.expression.accept(self)
+        if expression_type != TypeChecker.Type.LANGUAGE:
+            raise RuntimeError(f'LANGUAGE type expected, got {expression_type.name}')
+        return TypeChecker.Type.LANGUAGE
+
     def visit_set(self, set):
         for expression in set.expressions:
             expression_type = expression.accept(self)

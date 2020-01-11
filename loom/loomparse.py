@@ -168,8 +168,18 @@ def parse_complement_expression(tokens):
     next_tokens = deepcopy(tokens)
     seen, next_tokens = lookahead(next_tokens, loomtoken.Complement)
     if seen:
-        return loomast.Complement(parse_complement_expression(next_tokens)), next_tokens
-    return parse_set_parenthesis_expression(next_tokens)
+        return loomast.ComplementExpression(parse_kleene_expression(next_tokens)), next_tokens
+    return parse_kleene_expression(next_tokens)
+
+def parse_kleene_expression(tokens):
+    next_tokens = deepcopy(tokens)
+    expression, next_tokens = parse_set_parenthesis_expression(next_tokens)
+    if not expression:
+        return None, tokens
+    seen, next_tokens = lookahead(next_tokens, loomtoken.Star)
+    if seen:
+        return loomast.KleeneExpression(expression), next_tokens
+    return expression, next_tokens
 
 def parse_set_parenthesis_expression(tokens):
     next_tokens = deepcopy(tokens)
