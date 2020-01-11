@@ -9,7 +9,8 @@ STATEMENT := LANGUAGE-DEFINITION | STRING-DEFINITION ;
 
 LANGUAGE-DEFINITION := SYMBOL, DEFINE, SET-EXPRESSION, NEWLINE ;
 STRING-DEFINITION   := SYMBOL, DEFINE, STRING-EXPRESSION, IN, SET-EXPRESSION, NEWLINE ;
-EXCLAIM-STATEMENT   := EXPRESSION, EXCLAMATION ;
+EXCLAIM-STATEMENT   := STRING-EXPRESSION, EXCLAMATION, NEWLINE ;
+INQUIRE-STATEMENT   := SYMBOL, IN, SET-EXPRESSION, INQUIRY, NEWLINE ;
 
 
 SET-EXPRESSION             := UNION-EXPRESSION ;
@@ -56,6 +57,8 @@ NEWLINE           := ? newline character ? ;
 SYMBOL            := ? non-empty sequence of non-whitespace characters ? ;
 DEFINE            := ":=" ;
 IN                := "∈" ;
+EXCLAMATION       := "!" ;
+INQUIRY           := "?" ;
 UNION             := "∪" ;
 INTERSECT         := "∩" ;
 PRODUCT           := "×" ;
