@@ -5,7 +5,7 @@ bits := {0, 1}
 ascii := bits × bits × bits × bits × bits × bits × bits × bits
 
 # Get ascii input
-input ∈ ascii ?
+input ∈ ascii* ?
 
 # Define L, o, and m ascii characters
 L := 01001100 ∈ ascii
