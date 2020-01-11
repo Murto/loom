@@ -16,6 +16,7 @@ class TokenType(enum.Enum):
     PRODUCT           = enum.auto()
     DIFFERENCE        = enum.auto()
     COMPLEMENT        = enum.auto()
+    STAR              = enum.auto()
     CONCATENATE       = enum.auto()
     LEFT_PARENTHESIS  = enum.auto() 
     RIGHT_PARENTHESIS = enum.auto() 
@@ -107,6 +108,14 @@ class Complement(Token):
 
     def __repr__(self):
         return '<Complement>'
+
+class Star(Token):
+    
+    def __eq__(self, other):
+        return type(other) == Star
+
+    def __repr__(self):
+        return '<Star>'
 
 class Concatenate(Token):
     
@@ -220,6 +229,8 @@ def make_token(type, value):
         return Difference()
     elif type == TokenType.COMPLEMENT:
         return Complement()
+    elif type == TokenType.STAR:
+        return Star()
     elif type == TokenType.CONCATENATE:
         return Concatenate()
     elif type == TokenType.LEFT_PARENTHESIS:
@@ -252,6 +263,7 @@ def tokenize(source):
         re.compile('×') : TokenType.PRODUCT,
         re.compile('-') : TokenType.DIFFERENCE,
         re.compile('¬') : TokenType.COMPLEMENT,
+        re.compile('\\*') : TokenType.STAR,
         re.compile('\\+') : TokenType.CONCATENATE,
         re.compile('\\(') : TokenType.LEFT_PARENTHESIS,
         re.compile('\\)') : TokenType.RIGHT_PARENTHESIS,
